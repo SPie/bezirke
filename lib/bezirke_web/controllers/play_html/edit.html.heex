@@ -1,0 +1,8 @@
+<.header>
+  Edit Play <%= @play.title %>
+  <:subtitle>Use this form to manage play records in your database.</:subtitle>
+</.header>
+
+<.play_form changeset={@changeset} action={~p"/plays/#{@play}"} />
+
+<.back navigate={~p"/plays"}>Back to plays</.back>

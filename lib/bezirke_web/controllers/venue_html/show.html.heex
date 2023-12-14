@@ -1,0 +1,17 @@
+<.header>
+  Venue <%= @venue.id %>
+  <:subtitle>This is a venue record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/venues/#{@venue}/edit"}>
+      <.button>Edit venue</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @venue.name %></:item>
+  <:item title="Description"><%= @venue.description %></:item>
+  <:item title="Capacity"><%= @venue.capacity %></:item>
+</.list>
+
+<.back navigate={~p"/venues"}>Back to venues</.back>

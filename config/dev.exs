@@ -2,10 +2,11 @@ import Config
 
 # Configure your database
 config :bezirke, Bezirke.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "bezirke",
+  password: "bezirke",
   hostname: "localhost",
-  database: "bezirke_dev",
+  database: "bezirke",
+  port: 45432,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

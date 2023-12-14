@@ -1,0 +1,15 @@
+<.header>
+  Play <%= @play.title %>
+  <:subtitle>This is a play record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/plays/#{@play}/edit"}>
+      <.button>Edit play</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Description"><%= @play.description %></:item>
+</.list>
+
+<.back navigate={~p"/plays"}>Back to plays</.back>

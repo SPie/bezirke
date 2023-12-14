@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: bezirke
+      POSTGRES_PASSWORD: bezirke
+      POSTGRES_DB: bezirke
+    ports:
+      - 45432:5432

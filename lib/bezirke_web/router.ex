@@ -17,7 +17,11 @@ defmodule BezirkeWeb.Router do
   scope "/", BezirkeWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    # Placeholder
+    get "/", PlayController, :index
+
+    resources "/plays", PlayController, param: "uuid"
+    resources "/venues", VenueController, param: "uuid"
   end
 
   # Other scopes may use custom stacks.
