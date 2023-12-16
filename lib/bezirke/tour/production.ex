@@ -1,8 +1,8 @@
-defmodule Bezirke.Tour.Play do
+defmodule Bezirke.Tour.Production do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "plays" do
+  schema "productions" do
     field :description, :string
     field :title, :string
     field :uuid, Ecto.UUID
@@ -11,14 +11,14 @@ defmodule Bezirke.Tour.Play do
   end
 
   @doc false
-  def changeset(play, attrs) do
-    play
+  def changeset(production, attrs) do
+    production
     |> cast(attrs, [:uuid, :title, :description])
     |> validate_required([:uuid, :title, :description])
     |> unique_constraint(:uuid)
   end
 end
 
-defimpl Phoenix.Param, for: Bezirke.Tour.Play do
+defimpl Phoenix.Param, for: Bezirke.Tour.Production do
   def to_param(%{uuid: uuid}), do: uuid
 end

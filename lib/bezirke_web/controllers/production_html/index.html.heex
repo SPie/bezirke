@@ -1,0 +1,24 @@
+<.header>
+  Listing Productions
+  <:actions>
+    <.link href={~p"/productions/new"}>
+      <.button>New Production</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="productions" rows={@productions} row_click={&JS.navigate(~p"/productions/#{&1}")}>
+  <:col :let={production} label="Title"><%= production.title %></:col>
+  <:col :let={production} label="Description"><%= production.description %></:col>
+  <:action :let={production}>
+    <div class="sr-only">
+      <.link navigate={~p"/productions/#{production}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/productions/#{production}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={production}>
+    <.link href={~p"/productions/#{production}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

@@ -6,101 +6,101 @@ defmodule Bezirke.Tour do
   import Ecto.Query, warn: false
   alias Bezirke.Repo
 
-  alias Bezirke.Tour.Play
+  alias Bezirke.Tour.Production
 
   @doc """
-  Returns the list of plays.
+  Returns the list of productions.
 
   ## Examples
 
-      iex> list_plays()
-      [%Play{}, ...]
+      iex> list_productions()
+      [%Production{}, ...]
 
   """
-  def list_plays do
-    Repo.all(Play)
+  def list_productions do
+    Repo.all(Production)
   end
 
   @doc """
-  Gets a single play.
+  Gets a single production.
 
-  Raises `Ecto.NoResultsError` if the Play does not exist.
+  Raises `Ecto.NoResultsError` if the Production does not exist.
 
   ## Examples
 
-      iex> get_play!(123)
-      %Play{}
+      iex> get_production!(123)
+      %Production{}
 
-      iex> get_play!(456)
+      iex> get_production!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_play!(id), do: Repo.get!(Play, id)
+  def get_production!(id), do: Repo.get!(Production, id)
 
-  def get_play_by_uuid!(uuid), do: Repo.get_by!(Play, uuid: uuid)
+  def get_production_by_uuid!(uuid), do: Repo.get_by!(Production, uuid: uuid)
 
   @doc """
-  Creates a play.
+  Creates a production.
 
   ## Examples
 
-      iex> create_play(%{field: value})
-      {:ok, %Play{}}
+      iex> create_production(%{field: value})
+      {:ok, %Production{}}
 
-      iex> create_play(%{field: bad_value})
+      iex> create_production(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_play(attrs \\ %{}) do
-    %Play{uuid: Repo.generate_uuid()}
-    |> Play.changeset(attrs)
+  def create_production(attrs \\ %{}) do
+    %Production{uuid: Repo.generate_uuid()}
+    |> Production.changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Updates a play.
+  Updates a production.
 
   ## Examples
 
-      iex> update_play(play, %{field: new_value})
-      {:ok, %Play{}}
+      iex> update_production(production, %{field: new_value})
+      {:ok, %Production{}}
 
-      iex> update_play(play, %{field: bad_value})
+      iex> update_production(production, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_play(%Play{} = play, attrs) do
-    play
-    |> Play.changeset(attrs)
+  def update_production(%Production{} = production, attrs) do
+    production
+    |> Production.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a play.
+  Deletes a production.
 
   ## Examples
 
-      iex> delete_play(play)
-      {:ok, %Play{}}
+      iex> delete_production(production)
+      {:ok, %Production{}}
 
-      iex> delete_play(play)
+      iex> delete_production(production)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_play(%Play{} = play) do
-    Repo.delete(play)
+  def delete_production(%Production{} = production) do
+    Repo.delete(production)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking play changes.
+  Returns an `%Ecto.Changeset{}` for tracking production changes.
 
   ## Examples
 
-      iex> change_play(play)
-      %Ecto.Changeset{data: %Play{}}
+      iex> change_production(production)
+      %Ecto.Changeset{data: %Production{}}
 
   """
-  def change_play(%Play{} = play, attrs \\ %{}) do
-    Play.changeset(play, attrs)
+  def change_production(%Production{} = production, attrs \\ %{}) do
+    Production.changeset(production, attrs)
   end
 end

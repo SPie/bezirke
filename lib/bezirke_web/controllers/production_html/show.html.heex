@@ -1,0 +1,15 @@
+<.header>
+  Production <%= @production.title %>
+  <:subtitle>This is a production record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/productions/#{@production}/edit"}>
+      <.button>Edit production</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Description"><%= @production.description %></:item>
+</.list>
+
+<.back navigate={~p"/productions"}>Back to productions</.back>

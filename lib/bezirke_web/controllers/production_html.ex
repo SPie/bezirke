@@ -1,13 +1,13 @@
-defmodule BezirkeWeb.PlayHTML do
+defmodule BezirkeWeb.ProductionHTML do
   use BezirkeWeb, :html
 
-  embed_templates "play_html/*"
+  embed_templates "production_html/*"
 
   @doc """
-  Renders a play form.
+  Renders a production form.
   """
   attr :changeset, Ecto.Changeset, required: true
   attr :action, :string, required: true
 
-  def play_form(assigns)
+  def production_form(assigns)
 end

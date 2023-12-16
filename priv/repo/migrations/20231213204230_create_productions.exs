@@ -1,8 +1,8 @@
-defmodule Bezirke.Repo.Migrations.CreatePlays do
+defmodule Bezirke.Repo.Migrations.CreateProductions do
   use Ecto.Migration
 
   def change do
-    create table(:plays) do
+    create table(:productions) do
       add :uuid, :uuid, null: false
       add :title, :string, null: false
       add :description, :text
@@ -10,6 +10,6 @@ defmodule Bezirke.Repo.Migrations.CreatePlays do
       timestamps(type: :utc_datetime)
     end
 
-    create unique_index(:plays, [:uuid])
+    create unique_index(:productions, [:uuid])
   end
 end
