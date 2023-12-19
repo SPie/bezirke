@@ -1,0 +1,18 @@
+<.header>
+  Performance <%= @performance.played_at %>
+  <:subtitle>This is a performance record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/performances/#{@performance}/edit"}>
+      <.button>Edit performance</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Played at"><%= @performance.played_at %></:item>
+
+  <:item title="Procution"><%= @performance.production.title %></:item>
+  <:item title="Venue"><%= @performance.venue.name %></:item>
+</.list>
+
+<.back navigate={~p"/performances"}>Back to performances</.back>

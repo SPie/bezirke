@@ -7,6 +7,8 @@ defmodule Bezirke.Tour.Production do
     field :title, :string
     field :uuid, Ecto.UUID
 
+    has_many :performances, Bezirke.Tour.Performance
+
     timestamps(type: :utc_datetime)
   end
 

@@ -1,0 +1,13 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:played_at]} type="datetime-local" label="Played at" />
+
+  <.input field={f[:production_uuid]} type="select" options={productions_list(@changeset)} />
+  <.input field={f[:venue_uuid]} type="select" options={venues_list(@changeset)} />
+
+  <:actions>
+    <.button>Save Performance</.button>
+  </:actions>
+</.simple_form>

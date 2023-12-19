@@ -22,6 +22,7 @@ defmodule BezirkeWeb.Router do
 
     resources "/productions", ProductionController, param: "uuid"
     resources "/venues", VenueController, param: "uuid"
+    resources "/performances", PerformanceController, param: "uuid"
   end
 
   # Other scopes may use custom stacks.

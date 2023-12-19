@@ -19,4 +19,28 @@ defmodule Bezirke.TourFixtures do
 
     play
   end
+
+  @doc """
+  Generate a unique performance uuid.
+  """
+  def unique_performance_uuid do
+    raise "implement the logic to generate a unique performance uuid"
+  end
+
+  @doc """
+  Generate a performance.
+  """
+  def performance_fixture(attrs \\ %{}) do
+    {:ok, performance} =
+      attrs
+      |> Enum.into(%{
+        played_at: ~U[2023-12-15 23:46:00Z],
+        production_id: 42,
+        uuid: unique_performance_uuid(),
+        venue_id: 42
+      })
+      |> Bezirke.Tour.create_performance()
+
+    performance
+  end
 end

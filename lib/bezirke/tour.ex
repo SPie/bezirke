@@ -103,4 +103,111 @@ defmodule Bezirke.Tour do
   def change_production(%Production{} = production, attrs \\ %{}) do
     Production.changeset(production, attrs)
   end
+
+  alias Bezirke.Tour.Performance
+
+  @doc """
+  Returns the list of performances.
+
+  ## Examples
+
+      iex> list_performances()
+      [%Performance{}, ...]
+
+  """
+  def list_performances do
+    Performance
+    |> Repo.all()
+    |> Repo.preload(:production)
+    |> Repo.preload(:venue)
+  end
+
+  @doc """
+  Gets a single performance.
+
+  Raises `Ecto.NoResultsError` if the Performance does not exist.
+
+  ## Examples
+
+      iex> get_performance!(123)
+      %Performance{}
+
+      iex> get_performance!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_performance!(id), do: Repo.get!(Performance, id)
+
+  def get_performance_by_uuid!(uuid) do
+    Performance
+    |> Repo.get_by!(uuid: uuid)
+    |> Repo.preload(:production)
+    |> Repo.preload(:venue)
+  end
+
+  @doc """
+  Creates a performance.
+
+  ## Examples
+
+      iex> create_performance(%{field: value})
+      {:ok, %Performance{}}
+
+      iex> create_performance(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_performance(attrs) do
+    # get production and venue id
+    %Performance{uuid: Repo.generate_uuid()}
+    |> Performance.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a performance.
+
+  ## Examples
+
+      iex> update_performance(performance, %{field: new_value})
+      {:ok, %Performance{}}
+
+      iex> update_performance(performance, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_performance(%Performance{} = performance, attrs) do
+    performance
+    |> Performance.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a performance.
+
+  ## Examples
+
+      iex> delete_performance(performance)
+      {:ok, %Performance{}}
+
+      iex> delete_performance(performance)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_performance(%Performance{} = performance) do
+    Repo.delete(performance)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking performance changes.
+
+  ## Examples
+
+      iex> change_performance(performance)
+      %Ecto.Changeset{data: %Performance{}}
+
+  """
+  def change_performance(%Performance{} = performance, attrs \\ %{}) do
+    Performance.changeset(performance, attrs)
+  end
 end

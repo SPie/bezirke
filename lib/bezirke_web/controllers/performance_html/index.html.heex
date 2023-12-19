@@ -1,0 +1,25 @@
+<.header>
+  Listing Performances
+  <:actions>
+    <.link href={~p"/performances/new"}>
+      <.button>New Performance</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="performances" rows={@performances} row_click={&JS.navigate(~p"/performances/#{&1}")}>
+  <:col :let={performance} label="Played at"><%= performance.played_at %></:col>
+  <:col :let={performance} label="Production"><%= performance.production.title %></:col>
+  <:col :let={performance} label="Venue"><%= performance.venue.name %></:col>
+  <:action :let={performance}>
+    <div class="sr-only">
+      <.link navigate={~p"/performances/#{performance}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/performances/#{performance}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={performance}>
+    <.link href={~p"/performances/#{performance}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

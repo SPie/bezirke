@@ -8,6 +8,8 @@ defmodule Bezirke.Venues.Venue do
     field :uuid, Ecto.UUID
     field :capacity, :integer
 
+    has_many :performances, Bezirke.Tour.Performance
+
     timestamps(type: :utc_datetime)
   end
 

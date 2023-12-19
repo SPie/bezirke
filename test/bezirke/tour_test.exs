@@ -60,4 +60,64 @@ defmodule Bezirke.TourTest do
       assert %Ecto.Changeset{} = Tour.change_play(play)
     end
   end
+
+  describe "performances" do
+    alias Bezirke.Tour.Performance
+
+    import Bezirke.TourFixtures
+
+    @invalid_attrs %{uuid: nil, played_at: nil, production_id: nil, venue_id: nil}
+
+    test "list_performances/0 returns all performances" do
+      performance = performance_fixture()
+      assert Tour.list_performances() == [performance]
+    end
+
+    test "get_performance!/1 returns the performance with given id" do
+      performance = performance_fixture()
+      assert Tour.get_performance!(performance.id) == performance
+    end
+
+    test "create_performance/1 with valid data creates a performance" do
+      valid_attrs = %{uuid: "7488a646-e31f-11e4-aace-600308960662", played_at: ~U[2023-12-15 23:46:00Z], production_id: 42, venue_id: 42}
+
+      assert {:ok, %Performance{} = performance} = Tour.create_performance(valid_attrs)
+      assert performance.uuid == "7488a646-e31f-11e4-aace-600308960662"
+      assert performance.played_at == ~U[2023-12-15 23:46:00Z]
+      assert performance.production_id == 42
+      assert performance.venue_id == 42
+    end
+
+    test "create_performance/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Tour.create_performance(@invalid_attrs)
+    end
+
+    test "update_performance/2 with valid data updates the performance" do
+      performance = performance_fixture()
+      update_attrs = %{uuid: "7488a646-e31f-11e4-aace-600308960668", played_at: ~U[2023-12-16 23:46:00Z], production_id: 43, venue_id: 43}
+
+      assert {:ok, %Performance{} = performance} = Tour.update_performance(performance, update_attrs)
+      assert performance.uuid == "7488a646-e31f-11e4-aace-600308960668"
+      assert performance.played_at == ~U[2023-12-16 23:46:00Z]
+      assert performance.production_id == 43
+      assert performance.venue_id == 43
+    end
+
+    test "update_performance/2 with invalid data returns error changeset" do
+      performance = performance_fixture()
+      assert {:error, %Ecto.Changeset{}} = Tour.update_performance(performance, @invalid_attrs)
+      assert performance == Tour.get_performance!(performance.id)
+    end
+
+    test "delete_performance/1 deletes the performance" do
+      performance = performance_fixture()
+      assert {:ok, %Performance{}} = Tour.delete_performance(performance)
+      assert_raise Ecto.NoResultsError, fn -> Tour.get_performance!(performance.id) end
+    end
+
+    test "change_performance/1 returns a performance changeset" do
+      performance = performance_fixture()
+      assert %Ecto.Changeset{} = Tour.change_performance(performance)
+    end
+  end
 end

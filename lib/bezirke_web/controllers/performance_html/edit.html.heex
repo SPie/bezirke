@@ -1,0 +1,8 @@
+<.header>
+  Edit Performance <%= @performance.id %>
+  <:subtitle>Use this form to manage performance records in your database.</:subtitle>
+</.header>
+
+<.performance_form changeset={@changeset} action={~p"/performances/#{@performance}"} />
+
+<.back navigate={~p"/performances"}>Back to performances</.back>
