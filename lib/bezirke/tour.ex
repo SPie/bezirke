@@ -207,7 +207,9 @@ defmodule Bezirke.Tour do
       %Ecto.Changeset{data: %Performance{}}
 
   """
-  def change_performance(%Performance{} = performance, attrs \\ %{}) do
+  def change_performance(%Performance{} = performance, attrs \\ %{}) do 
     Performance.changeset(performance, attrs)
+    |> Ecto.Changeset.put_change(:production_uuid, performance.production.uuid)
+    |> Ecto.Changeset.put_change(:venue_uuid, performance.venue.uuid)
   end
 end
