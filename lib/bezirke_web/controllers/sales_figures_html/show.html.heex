@@ -1,0 +1,17 @@
+<.header>
+  Sales figures <%= @sales_figures.id %>
+  <:subtitle>This is a sales_figures record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/sales-figures/#{@sales_figures}/edit"}>
+      <.button>Edit sales_figures</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Performance"><%= @sales_figures.performance.production.title %> - <%= @sales_figures.performance.venue.name %></:item>
+  <:item title="Record date"><%= @sales_figures.record_date %></:item>
+  <:item title="Tickets count"><%= @sales_figures.tickets_count %></:item>
+</.list>
+
+<.back navigate={~p"/sales-figures"}>Back to sales_figures</.back>

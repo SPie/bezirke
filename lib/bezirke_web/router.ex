@@ -18,11 +18,12 @@ defmodule BezirkeWeb.Router do
     pipe_through :browser
 
     # Placeholder
-    get "/", ProductionController, :index
+    get "/", PerformanceController, :index
 
     resources "/productions", ProductionController, param: "uuid"
     resources "/venues", VenueController, param: "uuid"
     resources "/performances", PerformanceController, param: "uuid"
+    resources "/sales-figures", SalesFiguresController, param: "uuid"
   end
 
   # Other scopes may use custom stacks.

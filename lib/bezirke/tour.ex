@@ -118,8 +118,7 @@ defmodule Bezirke.Tour do
   def list_performances do
     Performance
     |> Repo.all()
-    |> Repo.preload(:production)
-    |> Repo.preload(:venue)
+    |> Repo.preload([:production, :venue])
   end
 
   @doc """
@@ -141,8 +140,7 @@ defmodule Bezirke.Tour do
   def get_performance_by_uuid!(uuid) do
     Performance
     |> Repo.get_by!(uuid: uuid)
-    |> Repo.preload(:production)
-    |> Repo.preload(:venue)
+    |> Repo.preload([:production, :venue])
   end
 
   @doc """
@@ -158,7 +156,6 @@ defmodule Bezirke.Tour do
 
   """
   def create_performance(attrs) do
-    # get production and venue id
     %Performance{uuid: Repo.generate_uuid()}
     |> Performance.changeset(attrs)
     |> Repo.insert()

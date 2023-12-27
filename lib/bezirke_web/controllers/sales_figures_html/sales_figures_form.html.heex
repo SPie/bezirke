@@ -1,0 +1,11 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:performance_uuid]} type="select" options={performances_list(@changeset)} />
+  <.input field={f[:record_date]} type="datetime-local" label="Record date" />
+  <.input field={f[:tickets_count]} type="number" label="Tickets count" />
+  <:actions>
+    <.button>Save Sales figures</.button>
+  </:actions>
+</.simple_form>
