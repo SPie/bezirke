@@ -5,8 +5,8 @@ defmodule Bezirke.Venues.Venue do
   schema "venues" do
     field :name, :string
     field :description, :string
-    field :uuid, Ecto.UUID
     field :capacity, :integer
+    field :uuid, Ecto.UUID
 
     has_many :performances, Bezirke.Tour.Performance
 

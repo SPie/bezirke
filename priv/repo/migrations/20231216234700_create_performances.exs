@@ -5,6 +5,7 @@ defmodule Bezirke.Repo.Migrations.CreatePerformances do
     create table(:performances) do
       add :uuid, :uuid
       add :played_at, :utc_datetime
+      add :capacity, :integer
       add :production_id, references(:productions)
       add :venue_id, references(:venues)
 

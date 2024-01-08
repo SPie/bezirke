@@ -11,7 +11,7 @@ defmodule BezirkeWeb.PerformanceController do
 
   def new(conn, _params) do
     changeset = Tour.change_performance(%Performance{})
-    render(conn, :new, changeset: changeset)
+    render_new_performance(conn, changeset)
   end
 
   def create(conn, %{"performance" => performance_params}) do
@@ -26,8 +26,10 @@ defmodule BezirkeWeb.PerformanceController do
   end
 
   defp handle_create_performance_response({:error, %Ecto.Changeset{} = changeset}, conn) do
-    render(conn, :new, changeset: changeset)
+    render_new_performance(conn, changeset)
   end
+
+  defp render_new_performance(conn, %Ecto.Changeset{} = changeset), do: render(conn, :new, changeset: changeset)
 
   def show(conn, %{"uuid" => uuid}) do
     performance = Tour.get_performance_by_uuid!(uuid)

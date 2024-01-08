@@ -7,6 +7,7 @@ defmodule Bezirke.Tour.Performance do
   schema "performances" do
     field :uuid, Ecto.UUID
     field :played_at, :utc_datetime
+    field :capacity, :integer
 
     belongs_to :production, Bezirke.Tour.Production
     belongs_to :venue, Bezirke.Venues.Venue
@@ -20,10 +21,10 @@ defmodule Bezirke.Tour.Performance do
   @doc false
   def changeset(performance, attrs) do
     performance
-    |> cast(attrs, [:uuid, :played_at, :production_uuid, :venue_uuid])
+    |> cast(attrs, [:uuid, :played_at, :capacity, :production_uuid, :venue_uuid])
     |> cast_production_id()
     |> cast_venue_id()
-    |> validate_required([:uuid, :played_at, :production_id, :venue_id])
+    |> validate_required([:uuid, :played_at, :capacity, :production_id, :venue_id])
     |> unique_constraint(:uuid)
   end
 
