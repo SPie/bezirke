@@ -10,19 +10,33 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-productions = [
-  {1, "Frankenstein", "A monster"},
-  {2, "Amadeus", "A production about Mozart"},
-  {3, "39 Stufen", "Something about stairs"},
-  {4, "Electra", "Not Carmen"},
-  {5, "Der kleine Prinz", "Ein Kinderstueck"},
+seasons = [
+  {1, "23/24"},
+  {2, "24/25"},
 ]
 
-for {id, title, description} <- productions do
+for {id, name} <- seasons do
+  Bezirke.Repo.insert!(%Bezirke.Tour.Season{
+    id: id,
+    name: name,
+    uuid: Bezirke.Repo.generate_uuid(),
+  })
+end
+
+productions = [
+  {1, "Frankenstein", "A monster", 1},
+  {2, "Amadeus", "A production about Mozart", 1},
+  {3, "39 Stufen", "Something about stairs", 2},
+  {4, "Electra", "Not Carmen", 2},
+  {5, "Der kleine Prinz", "Ein Kinderstueck", 2},
+]
+
+for {id, title, description, season_id} <- productions do
   Bezirke.Repo.insert!(%Bezirke.Tour.Production{
     id: id,
     title: title,
     description: description,
+    season_id: season_id,
     uuid: Bezirke.Repo.generate_uuid(),
   })
 end

@@ -120,4 +120,62 @@ defmodule Bezirke.TourTest do
       assert %Ecto.Changeset{} = Tour.change_performance(performance)
     end
   end
+
+  describe "seasons" do
+    alias Bezirke.Tour.Season
+
+    import Bezirke.TourFixtures
+
+    @invalid_attrs %{active: nil, name: nil, uuid: nil}
+
+    test "list_seasons/0 returns all seasons" do
+      season = season_fixture()
+      assert Tour.list_seasons() == [season]
+    end
+
+    test "get_season!/1 returns the season with given id" do
+      season = season_fixture()
+      assert Tour.get_season!(season.id) == season
+    end
+
+    test "create_season/1 with valid data creates a season" do
+      valid_attrs = %{active: true, name: "some name", uuid: "7488a646-e31f-11e4-aace-600308960662"}
+
+      assert {:ok, %Season{} = season} = Tour.create_season(valid_attrs)
+      assert season.active == true
+      assert season.name == "some name"
+      assert season.uuid == "7488a646-e31f-11e4-aace-600308960662"
+    end
+
+    test "create_season/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Tour.create_season(@invalid_attrs)
+    end
+
+    test "update_season/2 with valid data updates the season" do
+      season = season_fixture()
+      update_attrs = %{active: false, name: "some updated name", uuid: "7488a646-e31f-11e4-aace-600308960668"}
+
+      assert {:ok, %Season{} = season} = Tour.update_season(season, update_attrs)
+      assert season.active == false
+      assert season.name == "some updated name"
+      assert season.uuid == "7488a646-e31f-11e4-aace-600308960668"
+    end
+
+    test "update_season/2 with invalid data returns error changeset" do
+      season = season_fixture()
+      assert {:error, %Ecto.Changeset{}} = Tour.update_season(season, @invalid_attrs)
+      assert season == Tour.get_season!(season.id)
+    end
+
+    test "delete_season/1 deletes the season" do
+      season = season_fixture()
+      assert {:ok, %Season{}} = Tour.delete_season(season)
+      assert_raise Ecto.NoResultsError, fn -> Tour.get_season!(season.id) end
+    end
+
+    test "change_season/1 returns a season changeset" do
+      season = season_fixture()
+      assert %Ecto.Changeset{} = Tour.change_season(season)
+    end
+  end
 end

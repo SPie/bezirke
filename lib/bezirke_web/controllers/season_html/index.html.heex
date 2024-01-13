@@ -1,0 +1,24 @@
+<.header>
+  Listing Seasons
+  <:actions>
+    <.link href={~p"/seasons/new"}>
+      <.button>New Season</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table id="seasons" rows={@seasons} row_click={&JS.navigate(~p"/seasons/#{&1}")}>
+  <:col :let={season} label="Name"><%= season.name %></:col>
+  <:col :let={season} label="Active"><%= season.active %></:col>
+  <:action :let={season}>
+    <div class="sr-only">
+      <.link navigate={~p"/seasons/#{season}"}>Show</.link>
+    </div>
+    <.link navigate={~p"/seasons/#{season}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={season}>
+    <.link href={~p"/seasons/#{season}"} method="delete" data-confirm="Are you sure?">
+      Delete
+    </.link>
+  </:action>
+</.table>

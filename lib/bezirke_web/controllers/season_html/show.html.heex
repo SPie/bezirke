@@ -1,0 +1,16 @@
+<.header>
+  Season <%= @season.id %>
+  <:subtitle>This is a season record from your database.</:subtitle>
+  <:actions>
+    <.link href={~p"/seasons/#{@season}/edit"}>
+      <.button>Edit season</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @season.name %></:item>
+  <:item title="Active"><%= @season.active %></:item>
+</.list>
+
+<.back navigate={~p"/seasons"}>Back to seasons</.back>

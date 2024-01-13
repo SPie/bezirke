@@ -18,8 +18,9 @@ defmodule BezirkeWeb.Router do
     pipe_through :browser
 
     # Placeholder
-    get "/", PerformanceController, :index
+    get "/", StatisticsController, :production_sales
 
+    resources "/seasons", SeasonController, param: "uuid"
     resources "/productions", ProductionController, param: "uuid"
     resources "/venues", VenueController, param: "uuid"
     resources "/performances", PerformanceController, param: "uuid"

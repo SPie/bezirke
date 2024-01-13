@@ -34,7 +34,6 @@ defmodule Bezirke.Tour.Performance do
       production_uuid ->
         production = Tour.get_production_by_uuid!(production_uuid)
         put_change(changeset, :production_id, production.id)
-        |> IO.inspect()
     end
   end
 
@@ -44,7 +43,6 @@ defmodule Bezirke.Tour.Performance do
       venue_uuid ->
         venue = Venues.get_venue_by_uuid!(venue_uuid)
         put_change(changeset, :venue_id, venue.id)
-        |> IO.inspect()
     end
   end
 end

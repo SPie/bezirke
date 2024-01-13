@@ -43,4 +43,27 @@ defmodule Bezirke.TourFixtures do
 
     performance
   end
+
+  @doc """
+  Generate a unique season uuid.
+  """
+  def unique_season_uuid do
+    raise "implement the logic to generate a unique season uuid"
+  end
+
+  @doc """
+  Generate a season.
+  """
+  def season_fixture(attrs \\ %{}) do
+    {:ok, season} =
+      attrs
+      |> Enum.into(%{
+        active: true,
+        name: "some name",
+        uuid: unique_season_uuid()
+      })
+      |> Bezirke.Tour.create_season()
+
+    season
+  end
 end

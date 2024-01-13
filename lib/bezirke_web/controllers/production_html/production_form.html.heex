@@ -4,6 +4,7 @@
   </.error>
   <.input field={f[:title]} type="text" label="Title" />
   <.input field={f[:description]} type="text" label="Description" />
+  <.input field={f[:season_uuid]} type="select" options={seasons_list(@changeset)} />
   <:actions>
     <.button>Save Production</.button>
   </:actions>
