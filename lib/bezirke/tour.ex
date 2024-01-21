@@ -25,6 +25,11 @@ defmodule Bezirke.Tour do
     |> Repo.preload([:season])
   end
 
+  def get_productions_for_season(%Season{id: season_id}) do
+    from(p in Production, where: p.season_id == ^season_id)
+    |> Repo.all()
+  end
+
   @doc """
   Gets a single production.
 
@@ -117,6 +122,16 @@ defmodule Bezirke.Tour do
 
   defp get_season_uuid_from_production(%Production{season: %Season{uuid: uuid}}), do: uuid
   defp get_season_uuid_from_production(%Production{}), do: nil
+
+  def get_total_capacity(%Production{id: id}) do
+    from(
+      p in Production,
+      join: pf in assoc(p, :performances),
+      where: p.id == ^id,
+      select: sum(pf.capacity)
+    )
+    |> Repo.one()
+  end
 
   @doc """
   Returns the list of performances.
@@ -217,7 +232,7 @@ defmodule Bezirke.Tour do
 
   """
   def change_performance(%Performance{} = performance, attrs \\ %{}) do
-    production_uuid = get_product_uuid_from_performance(performance)
+    production_uuid = get_production_uuid_from_performance(performance)
     venue_uuid = get_venue_uuid_from_performance(performance)
 
     Performance.changeset(performance, attrs)
@@ -225,8 +240,8 @@ defmodule Bezirke.Tour do
     |> Ecto.Changeset.put_change(:venue_uuid, venue_uuid)
   end
 
-  defp get_product_uuid_from_performance(%Performance{production: %Production{uuid: uuid}}), do: uuid
-  defp get_product_uuid_from_performance(%Performance{}), do: nil
+  defp get_production_uuid_from_performance(%Performance{production: %Production{uuid: uuid}}), do: uuid
+  defp get_production_uuid_from_performance(%Performance{}), do: nil
 
   defp get_venue_uuid_from_performance(%Performance{venue: %Bezirke.Venues.Venue{uuid: uuid}}), do: uuid
 

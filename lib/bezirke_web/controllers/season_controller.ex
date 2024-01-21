@@ -27,7 +27,7 @@ defmodule BezirkeWeb.SeasonController do
 
   defp handle_create_season_response({:error, %Ecto.Changeset{} = changeset}, conn) do
     conn
-    |> render(conn, :new, changeset: changeset)
+    |> render(:new, changeset: changeset)
   end
 
   def show(conn, %{"uuid" => uuid}) do

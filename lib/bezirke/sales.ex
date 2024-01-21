@@ -7,6 +7,7 @@ defmodule Bezirke.Sales do
   alias Bezirke.Repo
 
   alias Bezirke.Sales.SalesFigures
+  alias Bezirke.Tour.Production
 
   @doc """
   Returns the list of sales_figures.
@@ -108,5 +109,15 @@ defmodule Bezirke.Sales do
   """
   def change_sales_figures(%SalesFigures{} = sales_figures, attrs \\ %{}) do
     SalesFigures.changeset(sales_figures, attrs)
+  end
+
+  def get_sales_figures_for_production(%Production{id: production_id}) do
+    from(
+      s in SalesFigures,
+      join: pf in assoc(s, :performance),
+      join: p in assoc(pf, :production),
+      where: p.id == ^production_id
+    )
+    |> Repo.all()
   end
 end

@@ -12,6 +12,8 @@ defmodule Bezirke.Tour.Performance do
     belongs_to :production, Bezirke.Tour.Production
     belongs_to :venue, Bezirke.Venues.Venue
 
+    has_many :sales_figures, Bezirke.Sales.SalesFigures
+
     timestamps(type: :utc_datetime)
 
     field :production_uuid, Ecto.UUID, virtual: true
