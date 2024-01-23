@@ -4,11 +4,6 @@ defmodule BezirkeWeb.PerformanceController do
   alias Bezirke.Tour
   alias Bezirke.Tour.Performance
 
-  def index(conn, _params) do
-    performances = Tour.list_performances()
-    render(conn, :index, performances: performances)
-  end
-
   def new(conn, _params) do
     changeset = Tour.change_performance(%Performance{})
     render_new_performance(conn, changeset)

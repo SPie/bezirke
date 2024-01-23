@@ -32,7 +32,10 @@ defmodule BezirkeWeb.ProductionController do
 
   def show(conn, %{"uuid" => uuid}) do
     production = Tour.get_production_by_uuid!(uuid)
-    render(conn, :show, production: production)
+
+    performances = Tour.get_performances_for_production(production)
+
+    render(conn, :show, production: production, performances: performances)
   end
 
   def edit(conn, %{"uuid" => uuid}) do

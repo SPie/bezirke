@@ -5,6 +5,9 @@
     <.link href={~p"/performances/#{@performance}/edit"}>
       <.button>Edit performance</.button>
     </.link>
+    <.link href={~p"/performances/#{@performance}"} method="delete" data-confirm="Are you sure?">
+      <.button>Delete performance</.button>
+    </.link>
   </:actions>
 </.header>
 
@@ -15,4 +18,4 @@
   <:item title="Venue"><%= @performance.venue.name %></:item>
 </.list>
 
-<.back navigate={~p"/performances"}>Back to performances</.back>
+<.back navigate={~p"/productions/#{@performance.production.uuid}"}>Back to Production</.back>

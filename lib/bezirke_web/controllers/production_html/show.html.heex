@@ -5,11 +5,24 @@
     <.link href={~p"/productions/#{@production}/edit"}>
       <.button>Edit production</.button>
     </.link>
+    <.link href={~p"/productions/#{@production}"} method="delete" data-confirm="Are you sure?">
+      <.button>Delete production</.button>
+    </.link>
   </:actions>
 </.header>
 
 <.list>
   <:item title="Description"><%= @production.description %></:item>
 </.list>
+
+
+<h2>Performances</h2>
+
+<ul class="mt-14">
+  <li :for={performance <- @performances} phx-click={JS.navigate(~p"/performances/#{performance}")} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
+    <dt class="w-1/4 flex-none text-zinc-500"><%= performance.venue.name %></dt>
+    <dd class="text-zinc-700"><%= performance.played_at %></dd>
+  </li>
+</ul>
 
 <.back navigate={~p"/productions"}>Back to productions</.back>

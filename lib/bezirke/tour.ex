@@ -170,6 +170,15 @@ defmodule Bezirke.Tour do
     |> Repo.preload([:production, :venue])
   end
 
+  def get_performances_for_production(%Production{id: production_id}) do
+    from(
+      pf in Performance,
+      where: pf.production_id == ^production_id
+    )
+    |> Repo.all()
+    |> Repo.preload(:venue)
+  end
+
   @doc """
   Creates a performance.
 

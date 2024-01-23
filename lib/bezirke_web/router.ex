@@ -23,8 +23,8 @@ defmodule BezirkeWeb.Router do
     resources "/seasons", SeasonController, param: "uuid"
     resources "/productions", ProductionController, param: "uuid"
     resources "/venues", VenueController, param: "uuid"
-    resources "/performances", PerformanceController, param: "uuid"
-    resources "/sales-figures", SalesFiguresController, param: "uuid"
+    resources "/performances", PerformanceController, param: "uuid", except: [:index]
+    resources "/sales-figures", SalesFiguresController, param: "uuid", except: [:index]
   end
 
   # Other scopes may use custom stacks.

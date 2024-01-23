@@ -116,7 +116,8 @@ defmodule Bezirke.Sales do
       s in SalesFigures,
       join: pf in assoc(s, :performance),
       join: p in assoc(pf, :production),
-      where: p.id == ^production_id
+      where: p.id == ^production_id,
+      order_by: s.record_date
     )
     |> Repo.all()
   end

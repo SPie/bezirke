@@ -4,11 +4,6 @@ defmodule BezirkeWeb.SalesFiguresController do
   alias Bezirke.Sales
   alias Bezirke.Sales.SalesFigures
 
-  def index(conn, _params) do
-    sales_figures = Sales.list_sales_figures()
-    render(conn, :index, sales_figures_collection: sales_figures)
-  end
-
   def new(conn, _params) do
     changeset = Sales.change_sales_figures(%SalesFigures{})
     render(conn, :new, changeset: changeset)
