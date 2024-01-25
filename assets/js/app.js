@@ -30,20 +30,13 @@ hooks.ChartJS = {
   mounted() {
     const ctx = this.el
 
+    console.log(this.el)
+
     const data = {
       type: 'line',
       data: {
-        labels: ['A', 'B', 'C', 'D'],
-        datasets: [
-          {
-            label: 'Amadeus',
-            data: [5, 8, 10, 7],
-          },
-          {
-            label: 'Frankenstein',
-            data: [18, 37, 9, 2],
-          }
-        ]
+        labels: JSON.parse(this.el.dataset.labels),
+        datasets: JSON.parse(this.el.dataset.datasets),
       }
     }
 

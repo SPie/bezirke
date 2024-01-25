@@ -54,6 +54,13 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
           id="production-sales"
           phx-hook="ChartJS"
           data-labels={Jason.encode!(@labels)}
+          data-datasets={
+            @datasets
+            |> Enum.map(fn {tickets_count, %Bezirke.Tour.Production{title: label}} ->
+              %{label: label, data: tickets_count}
+            end)
+            |> Jason.encode!()
+          }
         />
       </div>
     """
@@ -101,9 +108,9 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   defp build_chart(production_statistics) do
     labels = get_labels(production_statistics)
 
-    # build columns
+    datasets = build_datasets(labels, production_statistics)
 
-    {labels, []}
+    {labels, datasets}
   end
 
   defp get_labels(production_statistics) do
@@ -135,66 +142,50 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     end
   end
 
-  defp build_dataset() do
-  end
-
-  defp build_chart1(production_statistics) do
-    sorted_sales_figures = get_sorted_sales_figures(production_statistics)
-
-    start =
-      sorted_sales_figures
-      |> List.first()
-      |> elem(0)
-      |> DateTime.add(-1, :day)
-
-    initial_row =
-      Tuple.duplicate(0, length(production_statistics))
-      |> Tuple.insert_at(0, start)
-
-    production_column_names =
-      production_statistics
-      |> Enum.map(fn %{production: production} -> production.title end)
-
-    build_dataset1([initial_row], sorted_sales_figures)
-    |> Contex.Dataset.new(["Date" | production_column_names])
-    |> Contex.Plot.new(Contex.LinePlot, 600, 400, mapping: %{x_col: "Date", y_cols: production_column_names}, smoothed: false, legend_setting: :legend_right)
-    |> Contex.Plot.to_svg()
-  end
-
-  defp get_sorted_sales_figures(production_statistics) do
+  defp build_datasets(labels, production_statistics) do
     production_statistics
-    |> Enum.with_index()
-    |> Enum.flat_map(fn {%{sales_figures: sales_figures}, production_index} ->
-      for sales_figure <- sales_figures, production_index do
-        {
-          DateTime.to_date(sales_figure.record_date),
-          sales_figure.tickets_count,
-          production_index,
-        }
-      end
+    |> Enum.map(fn %{production: production, sales_figures: sales_figures} ->
+      dataset =
+        sales_figures
+        |> Enum.sort_by(&(&1.record_date), DateTime)
+        |> build_dataset(labels, [])
+        |> Enum.reverse()
+
+      {dataset, production}
     end)
-    |> Enum.sort_by(&(elem(&1, 0)), Date)
   end
 
-  defp build_dataset1(rows, []), do: rows |> Enum.reverse()
+  defp build_dataset(_, [], tickets_count), do: tickets_count
 
-  defp build_dataset1([latest | past_rows] = rows, [{%DateTime{} = record_date, tickets_count, production_index} | tail]) do
-    past_rows = case DateTime.compare(elem(latest, 0), record_date) do
-      :eq -> past_rows
-      _ -> rows
+  defp build_dataset([], [_ | next_dates], [latest_tickets_count | _] = tickets_count) do
+    build_dataset([], next_dates, [latest_tickets_count | tickets_count])
+  end
+
+  defp build_dataset(sales_figures, [current_date | next_dates], []) do
+    {total_tickets_count, sales_figures} = sum_tickets_count(0, current_date, sales_figures)
+
+    build_dataset(sales_figures, next_dates, [total_tickets_count])
+  end
+
+  defp build_dataset(sales_figures, [current_date | next_dates], [latest_tickets_count | _] = tickets_count) do
+    {total_tickets_count, sales_figures} = sum_tickets_count(latest_tickets_count, current_date, sales_figures)
+
+    build_dataset(sales_figures, next_dates, [total_tickets_count | tickets_count])
+  end
+
+  defp sum_tickets_count(total_tickets_count, _, []), do: {total_tickets_count, []}
+
+  defp sum_tickets_count(
+    total_tickets_count,
+    current_date,
+    [
+      %Bezirke.Sales.SalesFigures{record_date: record_date, tickets_count: tickets_count}
+      | next_sales_figures
+    ] = sales_figures
+  ) do
+    case Date.compare(current_date, DateTime.to_date(record_date)) do
+      :eq -> sum_tickets_count(tickets_count + total_tickets_count, current_date, next_sales_figures)
+      _ -> {total_tickets_count, sales_figures}
     end
-
-    row =
-      latest
-      |> put_elem(
-        0,
-        record_date
-      )
-      |> put_elem(
-        production_index + 1,
-        elem(latest, production_index + 1) + tickets_count
-      )
-
-    build_dataset1([row | past_rows], tail)
   end
 end
