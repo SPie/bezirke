@@ -30,8 +30,6 @@ hooks.ChartJS = {
   mounted() {
     const ctx = this.el
 
-    console.log(this.el)
-
     const data = {
       type: 'line',
       data: {
@@ -40,7 +38,9 @@ hooks.ChartJS = {
       }
     }
 
-    const chhart = new Chart(ctx, data)
+    const chart = new Chart(ctx, data)
+
+    this.handleEvent('update-chart', (payload) => chart.data = payload)
   }
 }
 

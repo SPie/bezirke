@@ -7,15 +7,10 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   def mount(_params, _session, socket) do
     seasons = Tour.list_seasons()
 
-    production_statistics =
+    {production_statistics, labels, datasets} =
       seasons
       |> get_active_season()
-      |> Tour.get_productions_for_season()
-      |> Enum.map(&get_production_statistics/1)
-
-    {labels, datasets} =
-      production_statistics
-      |> build_chart()
+      |> get_view_data()
 
     socket =
       socket
@@ -32,7 +27,9 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       <.header>
         Production Sales Statistics
       </.header>
-      <.input id="season" name="season" label="Season" type="select" options={@seasons} value="" />
+      <.form phx-change="select_season">
+        <.input id="season" name="season" label="Season" type="select" options={@seasons} value=""/>
+      </.form>
 
       <div>
         <%= for production_statistic <- @productions_statistics do %>
@@ -54,16 +51,47 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
           id="production-sales"
           phx-hook="ChartJS"
           data-labels={Jason.encode!(@labels)}
-          data-datasets={
-            @datasets
-            |> Enum.map(fn {tickets_count, %Bezirke.Tour.Production{title: label}} ->
-              %{label: label, data: tickets_count}
-            end)
-            |> Jason.encode!()
-          }
+          data-datasets={Jason.encode!(@datasets)}
         />
       </div>
     """
+  end
+
+  def handle_event("select_season", %{"season" => season_uuid}, socket) do
+    
+    {production_statistics, labels, datasets} =
+      season_uuid
+      |> Tour.get_season_by_uuid!()
+      |> get_view_data()
+
+    socket =
+      socket
+      |> assign(productions_statistics: production_statistics)
+      |> push_event("update-chart", %{labels: labels, datasets: datasets})
+
+    {:noreply, socket}
+  end
+
+  defp get_view_data(season) do
+    production_statistics =
+      season
+      |> Tour.get_productions_for_season()
+      |> Enum.map(&get_production_statistics/1)
+
+    {labels, datasets} =
+      production_statistics
+      |> Enum.map(fn %{production: production, sales_figures: sales_figures} ->
+        {production, sales_figures}
+      end)
+      |> build_chart()
+      
+    datasets =
+      datasets
+      |> Enum.map(fn {%Bezirke.Tour.Production{title: label}, tickets_count} ->
+        %{label: label, data: tickets_count}
+      end)
+
+    {production_statistics, labels, datasets}
   end
 
   defp get_active_season(seasons) do
@@ -116,7 +144,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   defp get_labels(production_statistics) do
     sales_figures =
       production_statistics
-      |> Enum.flat_map(fn %{sales_figures: sales_figures} ->
+      |> Enum.flat_map(fn {_, sales_figures} ->
         Enum.map(sales_figures, &(DateTime.to_date(&1.record_date)))
       end)
       |> Enum.sort_by(&(&1), Date)
@@ -144,14 +172,14 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
 
   defp build_datasets(labels, production_statistics) do
     production_statistics
-    |> Enum.map(fn %{production: production, sales_figures: sales_figures} ->
+    |> Enum.map(fn {production, sales_figures} ->
       dataset =
         sales_figures
         |> Enum.sort_by(&(&1.record_date), DateTime)
         |> build_dataset(labels, [])
         |> Enum.reverse()
 
-      {dataset, production}
+      {production, dataset}
     end)
   end
 
