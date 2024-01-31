@@ -170,6 +170,11 @@ defmodule Bezirke.Tour do
     |> Repo.preload([:production, :venue])
   end
 
+  def get_performance_by_uuid(uuid) do
+    Performance
+    |> Repo.get_by(uuid: uuid)
+  end
+
   def get_performances_for_production(%Production{id: production_id}) do
     from(
       pf in Performance,

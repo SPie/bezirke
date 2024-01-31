@@ -10,15 +10,25 @@ defmodule BezirkeWeb.SalesFiguresController do
   end
 
   def create(conn, %{"sales_figures" => sales_figures_params}) do
-    case Sales.create_sales_figures(sales_figures_params) do
-      {:ok, sales_figures} ->
-        conn
-        |> put_flash(:info, "Sales figures created successfully.")
-        |> redirect(to: ~p"/sales-figures/#{sales_figures}")
+    Sales.create_sales_figures(sales_figures_params)
+    |> IO.inspect()
+    |> handle_create_sales_figures_response(conn)
+  end
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :new, changeset: changeset)
-    end
+  defp handle_create_sales_figures_response({:ok, %{new_sales_figures: sales_figures}}, conn) do
+    conn
+    |> put_flash(:info, "Sales figures created successfully.")
+    |> redirect(to: ~p"/sales-figures/#{sales_figures}")
+  end
+
+  defp handle_create_sales_figures_response({:error, :new_sales_figures, changeset, _}, conn) do
+    conn
+    |> render(:new, changeset: changeset)
+  end
+
+  defp handle_create_sales_figures_response({:error, _, _, _}, conn) do
+    conn
+    |> render(:new)
   end
 
   def show(conn, %{"uuid" => uuid}) do
