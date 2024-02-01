@@ -11,7 +11,6 @@ defmodule BezirkeWeb.SalesFiguresController do
 
   def create(conn, %{"sales_figures" => sales_figures_params}) do
     Sales.create_sales_figures(sales_figures_params)
-    |> IO.inspect()
     |> handle_create_sales_figures_response(conn)
   end
 
@@ -21,38 +20,64 @@ defmodule BezirkeWeb.SalesFiguresController do
     |> redirect(to: ~p"/sales-figures/#{sales_figures}")
   end
 
-  defp handle_create_sales_figures_response({:error, :new_sales_figures, changeset, _}, conn) do
+  defp handle_create_sales_figures_response(
+    {
+      :error,
+      :new_sales_figures,
+      %Ecto.Changeset{} = changeset,
+      _,
+    },
+    conn
+  ) do
     conn
     |> render(:new, changeset: changeset)
   end
 
   defp handle_create_sales_figures_response({:error, _, _, _}, conn) do
     conn
+    # TODO flash message
     |> render(:new)
   end
 
   def show(conn, %{"uuid" => uuid}) do
-    sales_figures = Sales.get_sales_figures_by_uuid!(uuid)
+    sales_figures = get_sales_figures_with_total_tickets_count(uuid)
+
     render(conn, :show, sales_figures: sales_figures)
   end
 
   def edit(conn, %{"uuid" => uuid}) do
-    sales_figures = Sales.get_sales_figures_by_uuid!(uuid)
-    changeset = Sales.change_sales_figures(sales_figures)
+    sales_figures = get_sales_figures_with_total_tickets_count(uuid)
+    changeset = Sales.change_sales_figures_for_update(sales_figures)
+
     render(conn, :edit, sales_figures: sales_figures, changeset: changeset)
+  end
+
+  defp get_sales_figures_with_total_tickets_count(uuid) do
+    sales_figures = Sales.get_sales_figures_by_uuid!(uuid)
+
+    current_tickets_count = Sales.get_current_tickets_count_for_performance(
+      sales_figures.performance,
+      sales_figures.record_date,
+      sales_figures.id
+    )
+
+    %SalesFigures{sales_figures | tickets_count: current_tickets_count + sales_figures.tickets_count}
   end
 
   def update(conn, %{"uuid" => uuid, "sales_figures" => sales_figures_params}) do
     sales_figures = Sales.get_sales_figures_by_uuid!(uuid)
 
     case Sales.update_sales_figures(sales_figures, sales_figures_params) do
-      {:ok, sales_figures} ->
+      {:ok, %{updated_sales_figures: sales_figures}} ->
         conn
         |> put_flash(:info, "Sales figures updated successfully.")
         |> redirect(to: ~p"/sales-figures/#{sales_figures}")
 
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, :updated_sales_figures, %Ecto.Changeset{} = changeset, _} ->
         render(conn, :edit, sales_figures: sales_figures, changeset: changeset)
+      {:error, _, _, _} ->
+        # TODO flash message
+        render(conn, :edit, sales_figures: sales_figures)
     end
   end
 

@@ -34,18 +34,57 @@ defmodule Bezirke.Sales.SalesFigures do
 
   defp cast_performance(changeset), do: changeset
 
+  def changeset_for_update(sales_figures, attrs) do
+    sales_figures
+    |> cast(attrs, [:record_date, :tickets_count])
+    |> validate_required([:record_date, :tickets_count])
+    |> cast_tickets_count()
+  end
+
   defp cast_tickets_count(%Ecto.Changeset{changes: %{
     performance: %Ecto.Changeset{data: performance},
     tickets_count: tickets_count,
-    record_date: record_date
+    record_date: record_date,
   }} = changeset) do
-    total_tickets_count = Sales.get_current_tickets_count_for_performance(performance, record_date)
+    changeset
+    |> calculate_tickets_count(performance, tickets_count, record_date)
+  end
+
+  defp cast_tickets_count(%Ecto.Changeset{
+    changes: %{tickets_count: tickets_count, record_date: record_date},
+    data: %{id: id, performance: performance},
+  } = changeset) do
+    changeset
+    |> calculate_tickets_count(performance, tickets_count, record_date, id)
+  end
+
+  defp cast_tickets_count(%Ecto.Changeset{
+    changes: %{tickets_count: tickets_count},
+    data: %{id: id, performance: performance, record_date: record_date},
+  } = changeset) do
+    changeset
+    |> calculate_tickets_count(performance, tickets_count, record_date, id)
+  end
+
+  defp cast_tickets_count(changeset), do: changeset
+
+  defp calculate_tickets_count(
+    changeset,
+    performance,
+    tickets_count,
+    record_date,
+    sales_figures_id \\ nil
+  ) do
+    total_tickets_count = Sales.get_current_tickets_count_for_performance(
+      performance,
+      record_date,
+      sales_figures_id
+    )
+    |> IO.inspect()
 
     changeset
     |> put_change(:tickets_count, tickets_count - total_tickets_count)
   end
-
-  defp cast_tickets_count(changeset), do: changeset
 end
 
 defimpl Phoenix.Param, for: Bezirke.Sales.SalesFigures do

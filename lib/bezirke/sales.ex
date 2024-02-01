@@ -42,18 +42,9 @@ defmodule Bezirke.Sales do
   def get_sales_figures!(id), do: Repo.get!(SalesFigures, id)
 
   def get_sales_figures_by_uuid!(uuid) do
-    sales_figures =
-      SalesFigures
-      |> Repo.get_by!(uuid: uuid)
-      |> Repo.preload([performance: [:production, :venue]])
-
-
-    current_tickets_count = get_current_tickets_count_for_performance(
-      sales_figures.performance,
-      sales_figures.record_date
-    )
-
-    %SalesFigures{sales_figures | tickets_count: current_tickets_count + sales_figures.tickets_count}
+    SalesFigures
+    |> Repo.get_by!(uuid: uuid)
+    |> Repo.preload([performance: [:production, :venue]])
   end
 
   @doc """
@@ -69,12 +60,12 @@ defmodule Bezirke.Sales do
 
   """
   def create_sales_figures(attrs \\ %{}) do
-    sales_figure =
+    changeset =
       %SalesFigures{uuid: Repo.generate_uuid()}
       |> SalesFigures.changeset(attrs)
 
     Multi.new()
-    |> Multi.insert(:new_sales_figures, sales_figure)
+    |> Multi.insert(:new_sales_figures, changeset)
     |> Multi.run(:future_sales_figures, fn (repo, %{new_sales_figures: %SalesFigures{performance_id: performance_id, record_date: record_date}}) ->
       future_sales_figures =
         from(
@@ -93,7 +84,7 @@ defmodule Bezirke.Sales do
         nil -> Multi.new()
         %SalesFigures{tickets_count: current_tickets_count} = future_sales_figure ->
           Multi.new()
-          |> Multi.update(:updated_sales_figure, Ecto.Changeset.change(future_sales_figure, tickets_count: current_tickets_count + tickets_count * (-1)))
+          |> Multi.update(:updated_future_sales_figure, Ecto.Changeset.change(future_sales_figure, tickets_count: current_tickets_count + tickets_count * (-1)))
       end
     end)
     |> Repo.transaction()
@@ -112,9 +103,34 @@ defmodule Bezirke.Sales do
 
   """
   def update_sales_figures(%SalesFigures{} = sales_figures, attrs) do
-    sales_figures
-    |> SalesFigures.changeset(attrs)
-    |> Repo.update()
+    changeset =
+      sales_figures
+      |> SalesFigures.changeset_for_update(attrs)
+
+    Multi.new()
+    |> Multi.update(:updated_sales_figures, changeset)
+    |> Multi.run(:future_sales_figures, fn (repo, %{updated_sales_figures: %SalesFigures{performance_id: performance_id, record_date: record_date}}) ->
+      future_sales_figures =
+        from(
+          s in SalesFigures,
+          where: s.record_date > ^record_date,
+          where: s.performance_id == ^performance_id,
+          order_by: s.record_date
+        )
+        |> repo.all()
+        |> List.first()
+
+      {:ok, future_sales_figures}
+    end)
+    |> Multi.merge(fn %{updated_sales_figures: %SalesFigures{tickets_count: tickets_count}, future_sales_figures: future_sales_figures} ->
+      case future_sales_figures do
+        nil -> Multi.new()
+        %SalesFigures{tickets_count: current_tickets_count} = future_sales_figure ->
+          Multi.new()
+          |> Multi.update(:updated_future_sales_figure, Ecto.Changeset.change(future_sales_figure, tickets_count: current_tickets_count + (sales_figures.tickets_count - tickets_count)))
+      end
+    end)
+    |> Repo.transaction()
   end
 
   @doc """
@@ -146,6 +162,10 @@ defmodule Bezirke.Sales do
     SalesFigures.changeset(sales_figures, attrs)
   end
 
+  def change_sales_figures_for_update(%SalesFigures{} = sales_figures, attrs \\ %{}) do
+    SalesFigures.changeset_for_update(sales_figures, attrs)
+  end
+
   def get_sales_figures_for_production(%Production{id: production_id}) do
     from(
       s in SalesFigures,
@@ -157,12 +177,24 @@ defmodule Bezirke.Sales do
     |> Repo.all()
   end
 
-  def get_current_tickets_count_for_performance(performance, current_record_date) do
+  def get_current_tickets_count_for_performance(performance, current_record_date, nil) do
     from(
       s in SalesFigures,
       join: pf in assoc(s, :performance),
       where: pf.id == ^performance.id,
       where: s.record_date < ^current_record_date,
+      select: sum(s.tickets_count)
+    )
+    |> Repo.one!()
+  end
+
+  def get_current_tickets_count_for_performance(performance, current_record_date, sales_figures_id) do
+    from(
+      s in SalesFigures,
+      join: pf in assoc(s, :performance),
+      where: pf.id == ^performance.id,
+      where: s.record_date < ^current_record_date,
+      where: s.id != ^sales_figures_id,
       select: sum(s.tickets_count)
     )
     |> Repo.one!()
