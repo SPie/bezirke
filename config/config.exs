@@ -20,7 +20,7 @@ config :bezirke, BezirkeWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Bezirke.PubSub,
-  live_view: [signing_salt: "V8TV118y"]
+  live_view: [signing_salt: "V8TV118yqefw1983Hh139hh"]
 
 # Configures the mailer
 #

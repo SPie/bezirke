@@ -23,8 +23,20 @@ defmodule BezirkeWeb.Router do
     resources "/seasons", SeasonController, param: "uuid"
     resources "/productions", ProductionController, param: "uuid"
     resources "/venues", VenueController, param: "uuid"
-    resources "/performances", PerformanceController, param: "uuid", except: [:index]
-    resources "/sales-figures", SalesFiguresController, param: "uuid", except: [:index]
+
+    get "/performances/:uuid", PerformanceController, :show
+    get "/productions/:production_uuid/performances/new", PerformanceController, :new
+    post "/productions/:production_uuid/performances", PerformanceController, :create
+    get "/performances/:uuid/edit", PerformanceController, :edit
+    put "/performances/:uuid", PerformanceController, :update
+    delete "/performances/:uuid", PerformanceController, :delete
+
+    get "/sales-figures/:uuid", SalesFiguresController, :show
+    get "/performances/:performance_uuid/sales-figures/new", SalesFiguresController, :new
+    post "/performances/:performance_uuid/sales-figures", SalesFiguresController, :create
+    get "/sales-figures/:uuid/edit", SalesFiguresController, :edit
+    put "/sales-figures/:uuid", SalesFiguresController, :update
+    delete "/sales-figures/:uuid", SalesFiguresController, :delete
   end
 
   # Other scopes may use custom stacks.

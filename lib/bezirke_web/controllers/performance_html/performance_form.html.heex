@@ -5,7 +5,6 @@
   <.input field={f[:played_at]} type="datetime-local" label="Played at" />
   <.input field={f[:capacity]} type="number" label="Capacity" />
 
-  <.input field={f[:production_uuid]} type="select" options={productions_list(@changeset)} />
   <.input field={f[:venue_uuid]} type="select" options={venues_list(@changeset)} />
 
   <:actions>

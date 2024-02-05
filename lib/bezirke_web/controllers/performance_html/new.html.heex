@@ -1,8 +1,7 @@
 <.header>
-  New Performance
-  <:subtitle>Use this form to manage performance records in your database.</:subtitle>
+  New Performance for <%= @production.title %>
 </.header>
 
-<.performance_form changeset={@changeset} action={~p"/performances"} />
+<.performance_form changeset={@changeset} action={~p"/productions/#{@production}/performances"} />
 
-<.back navigate={~p"/performances"}>Back to performances</.back>
+<.back navigate={~p"/productions/#{@production}"}>Back to production</.back>

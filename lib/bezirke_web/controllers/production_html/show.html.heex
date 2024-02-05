@@ -16,13 +16,23 @@
 </.list>
 
 
-<h2>Performances</h2>
+<h2 class="pt-14">Performances</h2>
 
-<ul class="mt-14">
-  <li :for={performance <- @performances} phx-click={JS.navigate(~p"/performances/#{performance}")} class="flex gap-4 py-4 text-sm leading-6 sm:gap-8">
+<ul class="mt-2">
+  <li
+    :for={performance <- @performances}
+    phx-click={JS.navigate(~p"/performances/#{performance}")}
+    class="flex gap-4 py-4 text-sm leading-6 sm:gap-8 hover:cursor-pointer"
+  >
     <dt class="w-1/4 flex-none text-zinc-500"><%= performance.venue.name %></dt>
     <dd class="text-zinc-700"><%= performance.played_at %></dd>
   </li>
 </ul>
+
+<div>
+  <.link href={~p"/productions/#{@production}/performances/new"}>
+    <.button>New Performance</.button>
+  </.link>
+</div>
 
 <.back navigate={~p"/productions"}>Back to productions</.back>

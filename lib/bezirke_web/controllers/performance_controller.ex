@@ -4,31 +4,35 @@ defmodule BezirkeWeb.PerformanceController do
   alias Bezirke.Tour
   alias Bezirke.Tour.Performance
 
-  def new(conn, _params) do
+  def new(conn, %{"production_uuid" => production_uuid}) do
     changeset = Tour.change_performance(%Performance{})
-    render_new_performance(conn, changeset)
+    render_new_performance(conn, changeset, production_uuid)
   end
 
-  def create(conn, %{"performance" => performance_params}) do
-    Tour.create_performance(performance_params)
-    |> handle_create_performance_response(conn)
+  def create(conn, %{"production_uuid" => production_uuid, "performance" => performance_params}) do
+    Tour.create_performance(production_uuid, performance_params)
+    |> handle_create_performance_response(conn, production_uuid)
   end
 
-  defp handle_create_performance_response({:ok, performance}, conn) do
+  defp handle_create_performance_response({:ok, performance}, conn, _) do
     conn
     |> put_flash(:info, "Performance created successfully.")
     |> redirect(to: ~p"/performances/#{performance}")
   end
 
-  defp handle_create_performance_response({:error, %Ecto.Changeset{} = changeset}, conn) do
-    render_new_performance(conn, changeset)
+  defp handle_create_performance_response({:error, %Ecto.Changeset{} = changeset}, conn, production_uuid) do
+    render_new_performance(conn, changeset, production_uuid)
   end
 
-  defp render_new_performance(conn, %Ecto.Changeset{} = changeset), do: render(conn, :new, changeset: changeset)
+  defp render_new_performance(conn, %Ecto.Changeset{} = changeset, production_uuid) do
+    conn
+    |> render(:new, changeset: changeset, production: Tour.get_production_by_uuid!(production_uuid))
+  end
 
   def show(conn, %{"uuid" => uuid}) do
-    performance = Tour.get_performance_by_uuid!(uuid)
-    render(conn, :show, performance: performance)
+    {performance, sales_figures} = Tour.get_performance_with_sales_figures!(uuid)
+
+    render(conn, :show, performance: performance, sales_figures: sales_figures)
   end
 
   def edit(conn, %{"uuid" => uuid}) do
@@ -57,6 +61,6 @@ defmodule BezirkeWeb.PerformanceController do
 
     conn
     |> put_flash(:info, "Performance deleted successfully.")
-    |> redirect(to: ~p"/performances")
+    |> redirect(to: ~p"/productions/#{performance.production}")
   end
 end

@@ -18,4 +18,23 @@
   <:item title="Venue"><%= @performance.venue.name %></:item>
 </.list>
 
+<h2 class="pt-14">Sales Figures</h2>
+
+<ul class="mt-2">
+  <li
+    :for={{sales_figure, tickets_count} <- @sales_figures}
+    phx-click={JS.navigate(~p"/sales-figures/#{sales_figure}")}
+    class="flex gap-4 py-4 text-sm leading-6 sm:gap-8 hover:cursor-pointer"
+  >
+    <dt class="w-1/4 flex-none text-zinc-500"><%= sales_figure.record_date %></dt>
+    <dd class="text-zinc-700"><%= tickets_count %></dd>
+  </li>
+</ul>
+
+<div>
+  <.link href={~p"/performances/#{@performance}/sales-figures/new"}>
+    <.button>New Sales Figure</.button>
+  </.link>
+</div>
+
 <.back navigate={~p"/productions/#{@performance.production.uuid}"}>Back to Production</.back>

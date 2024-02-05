@@ -3,14 +3,15 @@ defmodule BezirkeWeb.SalesFiguresController do
 
   alias Bezirke.Sales
   alias Bezirke.Sales.SalesFigures
+  alias Bezirke.Tour
 
-  def new(conn, _params) do
+  def new(conn, %{"performance_uuid" => performance_uuid}) do
     changeset = Sales.change_sales_figures(%SalesFigures{})
-    render(conn, :new, changeset: changeset)
+    render(conn, :new, changeset: changeset, performance: Tour.get_performance_by_uuid!(performance_uuid))
   end
 
-  def create(conn, %{"sales_figures" => sales_figures_params}) do
-    Sales.create_sales_figures(sales_figures_params)
+  def create(conn, %{"performance_uuid" => performance_uuid, "sales_figures" => sales_figures_params}) do
+    Sales.create_sales_figures(performance_uuid, sales_figures_params)
     |> handle_create_sales_figures_response(conn)
   end
 
@@ -87,6 +88,6 @@ defmodule BezirkeWeb.SalesFiguresController do
 
     conn
     |> put_flash(:info, "Sales figures deleted successfully.")
-    |> redirect(to: ~p"/sales-figures")
+    |> redirect(to: ~p"/performances/#{sales_figures.performance}")
   end
 end

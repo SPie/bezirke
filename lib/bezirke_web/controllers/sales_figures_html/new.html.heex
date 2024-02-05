@@ -3,6 +3,6 @@
   <:subtitle>Use this form to manage sales_figures records in your database.</:subtitle>
 </.header>
 
-<.sales_figures_form changeset={@changeset} action={~p"/sales-figures"} />
+<.sales_figures_form changeset={@changeset} action={~p"/performances/#{@performance}/sales-figures"} />
 
-<.back navigate={~p"/sales-figures"}>Back to sales_figures</.back>
+<.back navigate={~p"/performances/#{@performance}"}>Back to performance</.back>

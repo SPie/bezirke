@@ -9,6 +9,7 @@ defmodule Bezirke.Tour do
   alias Bezirke.Tour.Season
   alias Bezirke.Tour.Production
   alias Bezirke.Tour.Performance
+  alias Bezirke.Sales
 
   @doc """
   Returns the list of productions.
@@ -184,6 +185,14 @@ defmodule Bezirke.Tour do
     |> Repo.preload(:venue)
   end
 
+  def get_performance_with_sales_figures!(uuid) do
+    performance = get_performance_by_uuid!(uuid)
+
+    sales_figures = Sales.get_sales_figures_for_performance(performance)
+
+    {performance, sales_figures}
+  end
+
   @doc """
   Creates a performance.
 
@@ -196,8 +205,11 @@ defmodule Bezirke.Tour do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_performance(attrs) do
-    %Performance{uuid: Repo.generate_uuid()}
+  def create_performance(production_uuid, attrs) do
+    %Performance{
+      uuid: Repo.generate_uuid(),
+      production: get_production_by_uuid!(production_uuid)
+    }
     |> Performance.changeset(attrs)
     |> Repo.insert()
   end
@@ -246,16 +258,11 @@ defmodule Bezirke.Tour do
 
   """
   def change_performance(%Performance{} = performance, attrs \\ %{}) do
-    production_uuid = get_production_uuid_from_performance(performance)
     venue_uuid = get_venue_uuid_from_performance(performance)
 
     Performance.changeset(performance, attrs)
-    |> Ecto.Changeset.put_change(:production_uuid, production_uuid)
     |> Ecto.Changeset.put_change(:venue_uuid, venue_uuid)
   end
-
-  defp get_production_uuid_from_performance(%Performance{production: %Production{uuid: uuid}}), do: uuid
-  defp get_production_uuid_from_performance(%Performance{}), do: nil
 
   defp get_venue_uuid_from_performance(%Performance{venue: %Bezirke.Venues.Venue{uuid: uuid}}), do: uuid
 

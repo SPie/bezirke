@@ -8,6 +8,8 @@ defmodule Bezirke.Sales do
   alias Bezirke.Repo
 
   alias Bezirke.Sales.SalesFigures
+  alias Bezirke.Tour
+  alias Bezirke.Tour.Performance
   alias Bezirke.Tour.Production
 
   @doc """
@@ -59,9 +61,12 @@ defmodule Bezirke.Sales do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_sales_figures(attrs \\ %{}) do
+  def create_sales_figures(performance_uuid, attrs \\ %{}) do
     changeset =
-      %SalesFigures{uuid: Repo.generate_uuid()}
+      %SalesFigures{
+        performance: Tour.get_performance_by_uuid!(performance_uuid),
+        uuid: Repo.generate_uuid(),
+      }
       |> SalesFigures.changeset(attrs)
 
     Multi.new()
@@ -198,5 +203,32 @@ defmodule Bezirke.Sales do
       select: sum(s.tickets_count)
     )
     |> Repo.one!()
+  end
+
+  def get_sales_figures_for_performance(%Performance{id: performance_id}) do
+    from(
+      s in SalesFigures,
+      where: s.performance_id == ^performance_id,
+      order_by: s.record_date
+    )
+    |> Repo.all()
+    |> sum_tickets_count_for_sales_figures(0, [])
+  end
+
+  defp sum_tickets_count_for_sales_figures([], _, sales_figures_with_tickets_count),
+    do: sales_figures_with_tickets_count
+
+  defp sum_tickets_count_for_sales_figures(
+  [%SalesFigures{tickets_count: tickets_count} = current_sales_figure | next_sales_figures],
+    tickets_count_sum,
+    sales_figures_with_tickets_count
+  ) do
+    tickets_count_sum = tickets_count_sum + tickets_count
+
+    sum_tickets_count_for_sales_figures(
+      next_sales_figures,
+      tickets_count_sum,
+      [{current_sales_figure, tickets_count_sum} | sales_figures_with_tickets_count]
+    )
   end
 end

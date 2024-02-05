@@ -11,28 +11,16 @@ defmodule Bezirke.Sales.SalesFigures do
     belongs_to :performance, Bezirke.Tour.Performance
 
     timestamps(type: :utc_datetime)
-
-    field :performance_uuid, Ecto.UUID, virtual: true
   end
 
   @doc false
   def changeset(sales_figures, attrs) do
     sales_figures
-    |> cast(attrs, [:uuid, :record_date, :tickets_count, :performance_uuid])
-    |> cast_performance()
+    |> cast(attrs, [:uuid, :record_date, :tickets_count])
     |> validate_required([:uuid, :record_date, :tickets_count, :performance])
     |> unique_constraint(:uuid)
     |> cast_tickets_count()
   end
-
-  defp cast_performance(%Ecto.Changeset{changes: %{performance_uuid: performance_uuid}} = changeset) do
-    case Bezirke.Tour.get_performance_by_uuid(performance_uuid) do
-      nil -> changeset
-      performance -> put_change(changeset, :performance, performance)
-    end
-  end
-
-  defp cast_performance(changeset), do: changeset
 
   def changeset_for_update(sales_figures, attrs) do
     sales_figures

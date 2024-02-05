@@ -10,13 +10,4 @@ defmodule BezirkeWeb.SalesFiguresHTML do
   attr :action, :string, required: true
 
   def sales_figures_form(assigns)
-
-  def performances_list(_changeset) do
-    for performance <- Bezirke.Tour.list_performances() do
-      [
-        key: performance.production.title <> " - " <> performance.venue.name,
-        value: performance.uuid,
-      ]
-    end
-  end
 end
