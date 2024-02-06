@@ -1,12 +1,10 @@
 defmodule BezirkeWeb.Router do
   use BezirkeWeb, :router
 
-  import Plug.BasicAuth
-
   alias Bezirke.Tour
 
   pipeline :browser do
-    plug :basic_auth, Application.compile_env(:bezirke, :basic_auth)
+    plug :user_basic_auth
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
@@ -18,6 +16,11 @@ defmodule BezirkeWeb.Router do
   pipeline :active_season do
     plug :set_active_season
     plug BezirkeWeb.Plugs.CheckActiveSeason
+  end
+
+  defp user_basic_auth(conn, _opts) do
+    conn
+    |> Plug.BasicAuth.basic_auth(Application.fetch_env!(:bezirke, :basic_auth))
   end
 
   defp set_active_season(conn, _) do

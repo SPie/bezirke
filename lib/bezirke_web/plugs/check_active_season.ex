@@ -13,7 +13,6 @@ defmodule BezirkeWeb.Plugs.CheckActiveSeason do
 
   def call(conn, _params) do
     conn
-    |> IO.inspect()
     |> redirect(to: ~p"/seasons/new")
     |> halt()
   end

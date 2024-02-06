@@ -1,6 +1,21 @@
 version: "3.9"
 
 services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MIX_ENV: prod
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      DATABASE_URL: ${DATABASE_URL}
+      BASIC_AUTH_USERNAME: ${BASIC_AUTH_USERNAME}
+      BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD}
+      PHX_HOST: ${PHX_HOST}
+    ports:
+      - 4000:4000
+    depends_on:
+      - db
   db:
     image: postgres
     restart: always

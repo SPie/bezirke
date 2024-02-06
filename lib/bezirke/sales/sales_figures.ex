@@ -68,7 +68,6 @@ defmodule Bezirke.Sales.SalesFigures do
       record_date,
       sales_figures_id
     )
-    |> IO.inspect()
 
     changeset
     |> put_change(:tickets_count, tickets_count - total_tickets_count)

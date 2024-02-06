@@ -191,6 +191,10 @@ defmodule Bezirke.Sales do
       select: sum(s.tickets_count)
     )
     |> Repo.one!()
+    |> case do
+      nil -> 0
+      tickets_count -> tickets_count
+    end
   end
 
   def get_current_tickets_count_for_performance(performance, current_record_date, sales_figures_id) do
@@ -203,6 +207,10 @@ defmodule Bezirke.Sales do
       select: sum(s.tickets_count)
     )
     |> Repo.one!()
+    |> case do
+      nil -> 0
+      tickets_count -> tickets_count
+    end
   end
 
   def get_sales_figures_for_performance(%Performance{id: performance_id}) do
