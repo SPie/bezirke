@@ -363,4 +363,13 @@ defmodule Bezirke.Tour do
   def change_season(%Season{} = season, attrs \\ %{}) do
     Season.changeset(season, attrs)
   end
+
+  def get_active_season(seasons) do
+    seasons
+    |> Enum.find(fn season -> season.active end)
+    |> case do
+      nil -> List.first(seasons)
+      active_season -> active_season
+    end
+  end
 end

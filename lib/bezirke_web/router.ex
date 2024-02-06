@@ -1,13 +1,32 @@
 defmodule BezirkeWeb.Router do
   use BezirkeWeb, :router
 
+  import Plug.BasicAuth
+
+  alias Bezirke.Tour
+
   pipeline :browser do
+    plug :basic_auth, Application.compile_env(:bezirke, :basic_auth)
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, html: {BezirkeWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+  end
+
+  pipeline :active_season do
+    plug :set_active_season
+    plug BezirkeWeb.Plugs.CheckActiveSeason
+  end
+
+  defp set_active_season(conn, _) do
+    Tour.list_seasons()
+    |> Tour.get_active_season()
+    |> case do
+      nil -> conn
+      active_season -> assign(conn, :active_season, active_season.uuid)
+    end
   end
 
   pipeline :api do
@@ -17,12 +36,15 @@ defmodule BezirkeWeb.Router do
   scope "/", BezirkeWeb do
     pipe_through :browser
 
-    # Placeholder
-    live "/", ProductionSalesStatistics
-
     resources "/seasons", SeasonController, param: "uuid"
-    resources "/productions", ProductionController, param: "uuid"
     resources "/venues", VenueController, param: "uuid"
+  end
+  
+  scope "/", BezirkeWeb do
+    pipe_through :browser
+    pipe_through :active_season
+
+    resources "/productions", ProductionController, param: "uuid"
 
     get "/performances/:uuid", PerformanceController, :show
     get "/productions/:production_uuid/performances/new", PerformanceController, :new
@@ -37,6 +59,8 @@ defmodule BezirkeWeb.Router do
     get "/sales-figures/:uuid/edit", SalesFiguresController, :edit
     put "/sales-figures/:uuid", SalesFiguresController, :update
     delete "/sales-figures/:uuid", SalesFiguresController, :delete
+
+    live "/", ProductionSalesStatistics
   end
 
   # Other scopes may use custom stacks.

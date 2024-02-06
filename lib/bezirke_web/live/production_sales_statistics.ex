@@ -9,7 +9,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
 
     {production_statistics, labels, datasets} =
       seasons
-      |> get_active_season()
+      |> Tour.get_active_season()
       |> get_view_data()
 
     socket =
@@ -94,13 +94,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     {production_statistics, labels, datasets}
   end
 
-  defp get_active_season(seasons) do
-    case Enum.find(seasons, fn season -> season.active end) do
-      nil -> List.first(seasons)
-      active_season -> active_season
-    end
-  end
-
   defp get_seasons_options(seasons) do
     seasons
     |> Enum.map(fn season ->
@@ -132,6 +125,8 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       tickets_count: tickets_count,
     }
   end
+
+  defp build_chart([]), do: {[], []}
 
   defp build_chart(production_statistics) do
     labels = get_labels(production_statistics)
