@@ -20,10 +20,10 @@ services:
     image: postgres
     restart: always
     environment:
-      POSTGRES_USER: bezirke
-      POSTGRES_PASSWORD: bezirke
-      POSTGRES_DB: bezirke
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     ports:
-      - 45432:5432
+      - 5432:5432
     volumes:
       - ./data:/var/lib/postgresql/data
