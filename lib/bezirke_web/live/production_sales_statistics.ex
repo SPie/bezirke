@@ -77,6 +77,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       season
       |> Tour.get_productions_for_season()
       |> Enum.map(&get_production_statistics/1)
+      |> Enum.filter(fn %{sales_figures: sales_figures} -> !Enum.empty?(sales_figures) end)
 
     {labels, datasets} =
       production_statistics

@@ -132,6 +132,10 @@ defmodule Bezirke.Tour do
       select: sum(pf.capacity)
     )
     |> Repo.one()
+    |> case do
+      nil -> 0
+      capacity -> capacity
+    end
   end
 
   @doc """

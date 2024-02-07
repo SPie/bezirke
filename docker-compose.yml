@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: always
     environment:
       MIX_ENV: prod
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
