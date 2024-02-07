@@ -84,7 +84,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         {production, sales_figures}
       end)
       |> build_chart()
-      
+
     datasets =
       datasets
       |> Enum.map(fn {%Bezirke.Tour.Production{title: label}, tickets_count} ->
@@ -137,13 +137,17 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   end
 
   defp get_labels(production_statistics) do
-    sales_figures =
-      production_statistics
-      |> Enum.flat_map(fn {_, sales_figures} ->
-        Enum.map(sales_figures, &(DateTime.to_date(&1.record_date)))
-      end)
-      |> Enum.sort_by(&(&1), Date)
+    production_statistics
+    |> Enum.flat_map(fn {_, sales_figures} ->
+      Enum.map(sales_figures, &(DateTime.to_date(&1.record_date)))
+    end)
+    |> Enum.sort_by(&(&1), Date)
+    |> get_labels_from_sales_figures()
+  end
 
+  defp get_labels_from_sales_figures([]), do: []
+
+  defp get_labels_from_sales_figures(sales_figures) do
     start_date =
       sales_figures
       |> List.first()
