@@ -2,6 +2,6 @@
   New Performance for <%= @production.title %>
 </.header>
 
-<.performance_form changeset={@changeset} action={~p"/productions/#{@production}/performances"} />
+<.performance_form changeset={@changeset} production={@production} action={~p"/productions/#{@production}/performances"} />
 
 <.back navigate={~p"/productions/#{@production}"}>Back to production</.back>

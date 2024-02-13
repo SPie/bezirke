@@ -33,7 +33,10 @@ defmodule BezirkeWeb.ProductionController do
   def show(conn, %{"uuid" => uuid}) do
     production = Tour.get_production_by_uuid!(uuid)
 
-    performances = Tour.get_performances_for_production(production)
+    performances =
+      production
+      |> Tour.get_performances_for_production()
+      |> Enum.sort_by(&(&1.played_at), DateTime)
 
     render(conn, :show, production: production, performances: performances)
   end
