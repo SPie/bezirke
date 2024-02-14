@@ -1,6 +1,7 @@
 defmodule BezirkeWeb.PerformanceController do
   use BezirkeWeb, :controller
 
+  alias Bezirke.Sales
   alias Bezirke.Tour
   alias Bezirke.Tour.Performance
   alias Bezirke.Venues
@@ -45,29 +46,30 @@ defmodule BezirkeWeb.PerformanceController do
     |> render(:new_for_venue, changeset: changeset, venue: Venues.get_venue_by_uuid!(venue_uuid))
   end
 
-  def show(conn, %{"uuid" => uuid}) do
-    {performance, sales_figures} = Tour.get_performance_with_sales_figures!(uuid)
+  def show(conn, %{"uuid" => uuid, "origin" => origin} = params) do
+    performance = Tour.get_performance_by_uuid!(uuid)
+    sales_figures = Sales.get_sales_figures_for_performance(performance)
 
-    render(conn, :show, performance: performance, sales_figures: sales_figures)
+    render(conn, :show, performance: performance, sales_figures: sales_figures, origin: origin)
   end
 
-  def edit(conn, %{"uuid" => uuid}) do
+  def edit(conn, %{"uuid" => uuid, "origin" => origin}) do
     performance = Tour.get_performance_by_uuid!(uuid)
     changeset = Tour.change_performance(performance)
-    render(conn, :edit, performance: performance, changeset: changeset)
+    render(conn, :edit, performance: performance, changeset: changeset, origin: origin)
   end
 
-  def update(conn, %{"uuid" => uuid, "performance" => performance_params}) do
+  def update(conn, %{"uuid" => uuid, "performance" => performance_params, "origin" => origin}) do
     performance = Tour.get_performance_by_uuid!(uuid)
 
     case Tour.update_performance(performance, performance_params) do
       {:ok, performance} ->
         conn
         |> put_flash(:info, "Performance updated successfully.")
-        |> redirect(to: ~p"/performances/#{performance}")
+        |> redirect(to: ~p"/performances/#{performance}?origin=#{origin}")
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, :edit, performance: performance, changeset: changeset)
+        render(conn, :edit, performance: performance, changeset: changeset, origin: origin)
     end
   end
 

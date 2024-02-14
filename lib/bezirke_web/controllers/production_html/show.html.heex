@@ -20,7 +20,7 @@
 <ul class="mt-2">
   <li
     :for={performance <- @performances}
-    phx-click={JS.navigate(~p"/performances/#{performance}")}
+    phx-click={JS.navigate(~p"/performances/#{performance}?origin=production")}
     class="flex gap-4 py-4 text-sm leading-6 sm:gap-8 hover:cursor-pointer"
   >
     <dt class="w-1/4 flex-none text-zinc-500"><%= performance.venue.name %></dt>

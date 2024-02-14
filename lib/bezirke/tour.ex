@@ -200,14 +200,6 @@ defmodule Bezirke.Tour do
     |> Repo.preload(:production)
   end
 
-  def get_performance_with_sales_figures!(uuid) do
-    performance = get_performance_by_uuid!(uuid)
-
-    sales_figures = Sales.get_sales_figures_for_performance(performance)
-
-    {performance, sales_figures}
-  end
-
   def create_performance(production_or_venue, attrs) do
     case production_or_venue do
       {:production, production_uuid} -> %Performance{
