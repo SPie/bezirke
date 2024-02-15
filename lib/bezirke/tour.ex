@@ -10,6 +10,8 @@ defmodule Bezirke.Tour do
   alias Bezirke.Tour.Production
   alias Bezirke.Tour.Performance
   alias Bezirke.Sales
+  alias Bezirke.Venues
+  alias Bezirke.Venues.Venue
 
   @doc """
   Returns the list of productions.
@@ -189,31 +191,26 @@ defmodule Bezirke.Tour do
     |> Repo.preload(:venue)
   end
 
-  def get_performance_with_sales_figures!(uuid) do
-    performance = get_performance_by_uuid!(uuid)
-
-    sales_figures = Sales.get_sales_figures_for_performance(performance)
-
-    {performance, sales_figures}
+  def get_performances_for_venue(%Venue{id: venue_id}) do
+    from(
+      pf in Performance,
+      where: pf.venue_id == ^venue_id
+    )
+    |> Repo.all()
+    |> Repo.preload(:production)
   end
 
-  @doc """
-  Creates a performance.
-
-  ## Examples
-
-      iex> create_performance(%{field: value})
-      {:ok, %Performance{}}
-
-      iex> create_performance(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_performance(production_uuid, attrs) do
-    %Performance{
-      uuid: Repo.generate_uuid(),
-      production: get_production_by_uuid!(production_uuid)
-    }
+  def create_performance(production_or_venue, attrs) do
+    case production_or_venue do
+      {:production, production_uuid} -> %Performance{
+          uuid: Repo.generate_uuid(),
+          production: get_production_by_uuid!(production_uuid)
+        }
+      {:venue, venue_uuid} -> %Performance{
+          uuid: Repo.generate_uuid(),
+          venue: Venues.get_venue_by_uuid!(venue_uuid)
+        }
+    end
     |> Performance.changeset(attrs)
     |> Repo.insert()
   end

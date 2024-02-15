@@ -2,6 +2,7 @@ defmodule Bezirke.Tour.Performance do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Bezirke.Tour
   alias Bezirke.Venues
 
   schema "performances" do
@@ -16,24 +17,31 @@ defmodule Bezirke.Tour.Performance do
 
     timestamps(type: :utc_datetime)
 
+    field :production_uuid, Ecto.UUID, virtual: true
     field :venue_uuid, Ecto.UUID, virtual: true
   end
 
   @doc false
   def changeset(performance, attrs) do
     performance
-    |> cast(attrs, [:uuid, :played_at, :capacity, :venue_uuid])
-    |> cast_venue_id()
-    |> validate_required([:uuid, :played_at, :capacity, :production, :venue_id])
+    |> cast(attrs, [:uuid, :played_at, :capacity, :production_uuid, :venue_uuid])
+    |> cast_production()
+    |> cast_venue()
+    |> validate_required([:uuid, :played_at, :capacity, :production, :venue])
     |> unique_constraint(:uuid)
   end
 
-  defp cast_venue_id(changeset) do
+  defp cast_production(changeset) do
+    case get_change(changeset, :production_uuid) do
+      nil -> changeset
+      production_uuid -> put_change(changeset, :production, Tour.get_production_by_uuid!(production_uuid))
+    end
+  end
+
+  defp cast_venue(changeset) do
     case get_change(changeset, :venue_uuid) do
       nil -> changeset
-      venue_uuid ->
-        venue = Venues.get_venue_by_uuid!(venue_uuid)
-        put_change(changeset, :venue_id, venue.id)
+      venue_uuid -> put_change(changeset, :venue, Venues.get_venue_by_uuid!(venue_uuid))
     end
   end
 end

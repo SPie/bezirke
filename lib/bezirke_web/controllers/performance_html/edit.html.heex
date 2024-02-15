@@ -2,6 +2,6 @@
   Edit Performance for <%= @performance.production.title %>
 </.header>
 
-<.performance_form changeset={@changeset} action={~p"/performances/#{@performance}"} />
+<.performance_form changeset={@changeset} action={~p"/performances/#{@performance}?origin=#{@origin}"} />
 
-<.back navigate={~p"/performances/#{@performance}"}>Back to performances</.back>
+<.back navigate={~p"/performances/#{@performance}?origin=#{@origin}"}>Back to performance</.back>
