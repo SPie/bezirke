@@ -38,7 +38,10 @@ defmodule Bezirke.Venues do
   """
   def get_venue!(id), do: Repo.get!(Venue, id)
 
-  def get_venue_by_uuid!(uuid), do: Repo.get_by!(Venue, uuid: uuid)
+  def get_venue_by_uuid!(uuid) do
+    Venue
+    |> Repo.get_by!(uuid: uuid)
+  end
 
   @doc """
   Creates a venue.

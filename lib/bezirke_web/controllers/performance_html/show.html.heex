@@ -2,10 +2,10 @@
   Performance <%= @performance.played_at %>
   <:subtitle>This is a performance record from your database.</:subtitle>
   <:actions>
-    <.link href={~p"/performances/#{@performance}/edit"}>
+    <.link href={~p"/performances/#{@performance}/edit?origin=#{@origin}"}>
       <.button>Edit performance</.button>
     </.link>
-    <.link href={~p"/performances/#{@performance}"} method="delete" data-confirm="Are you sure?">
+    <.link href={~p"/performances/#{@performance}?origin=#{@origin}"} method="delete" data-confirm="Are you sure?">
       <.button>Delete performance</.button>
     </.link>
   </:actions>
@@ -37,4 +37,8 @@
   </.link>
 </div>
 
-<.back navigate={~p"/productions/#{@performance.production.uuid}"}>Back to Production</.back>
+<%= if @origin == "production" do %>
+  <.back navigate={~p"/productions/#{@performance.production}"}>Back to Production</.back>
+<% else %>
+  <.back navigate={~p"/venues/#{@performance.venue}"}>Back to Venue</.back>
+<% end %>

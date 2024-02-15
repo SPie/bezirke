@@ -52,6 +52,8 @@ defmodule BezirkeWeb.Router do
     get "/performances/:uuid", PerformanceController, :show
     get "/productions/:production_uuid/performances/new", PerformanceController, :new
     post "/productions/:production_uuid/performances", PerformanceController, :create
+    get "/venues/:venue_uuid/performances/new", PerformanceController, :new
+    post "/venues/:venue_uuid/performances", PerformanceController, :create
     get "/performances/:uuid/edit", PerformanceController, :edit
     put "/performances/:uuid", PerformanceController, :update
     delete "/performances/:uuid", PerformanceController, :delete
