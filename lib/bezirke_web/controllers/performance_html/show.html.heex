@@ -5,7 +5,7 @@
     <.link href={~p"/performances/#{@performance}/edit?origin=#{@origin}"}>
       <.button>Edit performance</.button>
     </.link>
-    <.link href={~p"/performances/#{@performance}"} method="delete" data-confirm="Are you sure?">
+    <.link href={~p"/performances/#{@performance}?origin=#{@origin}"} method="delete" data-confirm="Are you sure?">
       <.button>Delete performance</.button>
     </.link>
   </:actions>

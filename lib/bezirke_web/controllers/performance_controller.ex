@@ -53,11 +53,15 @@ defmodule BezirkeWeb.PerformanceController do
     render(conn, :show, performance: performance, sales_figures: sales_figures, origin: origin)
   end
 
+  def show(conn, %{"uuid" => _} = params), do: show(conn, add_origin(params))
+
   def edit(conn, %{"uuid" => uuid, "origin" => origin}) do
     performance = Tour.get_performance_by_uuid!(uuid)
     changeset = Tour.change_performance(performance)
     render(conn, :edit, performance: performance, changeset: changeset, origin: origin)
   end
+
+  def edit(conn, %{"uuid" => _} = params), do: edit(conn, add_origin(params))
 
   def update(conn, %{"uuid" => uuid, "performance" => performance_params, "origin" => origin}) do
     performance = Tour.get_performance_by_uuid!(uuid)
@@ -73,12 +77,22 @@ defmodule BezirkeWeb.PerformanceController do
     end
   end
 
-  def delete(conn, %{"uuid" => uuid}) do
+  def update(conn, %{"uuid" => _, "performance" => _} = params), do: update(conn, add_origin(params))
+
+  def delete(conn, %{"uuid" => uuid, "origin" => origin}) do
     performance = Tour.get_performance_by_uuid!(uuid)
     {:ok, _performance} = Tour.delete_performance(performance)
 
-    conn
+    conn = conn
     |> put_flash(:info, "Performance deleted successfully.")
-    |> redirect(to: ~p"/productions/#{performance.production}")
+
+    case origin do
+      "venue" -> conn |> redirect(to: ~p"/venues/#{performance.venue}")
+      _ -> conn |> redirect(to: ~p"/productions/#{performance.production}")
+    end
   end
+
+  def delete(conn, %{"uuid" => _} = params), do: delete(conn, add_origin(params))
+
+  defp add_origin(params), do: Map.put(params, "origin", "production")
 end
