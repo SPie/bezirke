@@ -48,7 +48,7 @@ defmodule BezirkeWeb.PerformanceController do
 
   def show(conn, %{"uuid" => uuid, "origin" => origin} = params) do
     performance = Tour.get_performance_by_uuid!(uuid)
-    sales_figures = Sales.get_sales_figures_for_performance(performance)
+    sales_figures = Sales.get_sales_figures_with_tickets_count_sum(performance)
 
     render(conn, :show, performance: performance, sales_figures: sales_figures, origin: origin)
   end

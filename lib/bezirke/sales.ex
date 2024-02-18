@@ -220,6 +220,10 @@ defmodule Bezirke.Sales do
       order_by: s.record_date
     )
     |> Repo.all()
+  end
+
+  def get_sales_figures_with_tickets_count_sum(performance) do
+    get_sales_figures_for_performance(performance)
     |> sum_tickets_count_for_sales_figures(0, [])
   end
 

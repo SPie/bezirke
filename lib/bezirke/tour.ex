@@ -191,6 +191,11 @@ defmodule Bezirke.Tour do
     |> Repo.preload(:venue)
   end
 
+  def get_performances_for_production_with_sales_figures(production) do
+    get_performances_for_production(production)
+    |> Repo.preload(:sales_figures)
+  end
+
   def get_performances_for_venue(%Venue{id: venue_id}) do
     from(
       pf in Performance,
