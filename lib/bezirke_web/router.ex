@@ -66,6 +66,7 @@ defmodule BezirkeWeb.Router do
     delete "/sales-figures/:uuid", SalesFiguresController, :delete
 
     live "/", ProductionSalesStatistics
+    live "/statistics/performances", PerformanceSalesStatistics
   end
 
   # Other scopes may use custom stacks.
