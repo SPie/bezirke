@@ -17,6 +17,8 @@ defmodule Bezirke.Tour.Performance do
 
     timestamps(type: :utc_datetime)
 
+    field :played_at_date, :date, virtual: true
+    field :played_at_time, :time, virtual: true
     field :production_uuid, Ecto.UUID, virtual: true
     field :venue_uuid, Ecto.UUID, virtual: true
   end
@@ -24,11 +26,20 @@ defmodule Bezirke.Tour.Performance do
   @doc false
   def changeset(performance, attrs) do
     performance
-    |> cast(attrs, [:uuid, :played_at, :capacity, :production_uuid, :venue_uuid])
+    |> cast(attrs, [
+        :uuid,
+        :played_at,
+        :capacity,
+        :production_uuid,
+        :venue_uuid,
+        :played_at_date,
+        :played_at_time
+    ])
     |> cast_production()
     |> cast_venue()
-    |> validate_required([:uuid, :played_at, :capacity, :production, :venue])
+    |> validate_required([:uuid, :capacity, :production, :venue, :played_at_time, :played_at_date])
     |> unique_constraint(:uuid)
+    |> cast_played_at()
   end
 
   defp cast_production(changeset) do
@@ -42,6 +53,17 @@ defmodule Bezirke.Tour.Performance do
     case get_change(changeset, :venue_uuid) do
       nil -> changeset
       venue_uuid -> put_change(changeset, :venue, Venues.get_venue_by_uuid!(venue_uuid))
+    end
+  end
+
+  defp cast_played_at(changeset) do
+    played_at_date = get_change(changeset, :played_at_date)
+    played_at_time = get_change(changeset, :played_at_time)
+
+    if played_at_date == nil || played_at_time == nil do
+      changeset
+    else
+      put_change(changeset, :played_at, DateTime.new!(played_at_date, played_at_time))
     end
   end
 end

@@ -2,7 +2,8 @@
   <.error :if={@changeset.action}>
     Oops, something went wrong! Please check the errors below.
   </.error>
-  <.input field={f[:played_at]} type="datetime-local" label="Played at" />
+  <.input field={f[:played_at_date]} type="date" label="Played at" />
+  <.input field={f[:played_at_time]} type="time" />
   <.input field={f[:capacity]} type="number" label="Capacity" />
 
   <%= if @production do %>

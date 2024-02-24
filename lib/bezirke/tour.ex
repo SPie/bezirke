@@ -205,17 +205,19 @@ defmodule Bezirke.Tour do
     |> Repo.preload(:production)
   end
 
-  def create_performance(production_or_venue, attrs) do
-    case production_or_venue do
-      {:production, production_uuid} -> %Performance{
-          uuid: Repo.generate_uuid(),
-          production: get_production_by_uuid!(production_uuid)
-        }
-      {:venue, venue_uuid} -> %Performance{
-          uuid: Repo.generate_uuid(),
-          venue: Venues.get_venue_by_uuid!(venue_uuid)
-        }
-    end
+  def create_performance({:production, production_uuid}, attrs) do
+    %Performance{production: get_production_by_uuid!(production_uuid)}
+    |> do_create_performance(attrs)
+  end
+
+  def create_performance({:venue, venue_uuid}, attrs) do
+    %Performance{venue: Venues.get_venue_by_uuid!(venue_uuid)}
+    |> do_create_performance(attrs)
+  end
+
+  defp do_create_performance(%Performance{} = performance, attrs) do
+    performance
+    |> Map.put(:uuid, Repo.generate_uuid())
     |> Performance.changeset(attrs)
     |> Repo.insert()
   end
@@ -264,10 +266,15 @@ defmodule Bezirke.Tour do
 
   """
   def change_performance(%Performance{} = performance, attrs \\ %{}) do
-    venue_uuid = get_venue_uuid_from_performance(performance)
-
-    Performance.changeset(performance, attrs)
-    |> Ecto.Changeset.put_change(:venue_uuid, venue_uuid)
+    case performance.played_at do
+      nil -> performance |> Map.put(:played_at_time, Time.new!(19, 30, 0))
+      played_at ->
+        performance
+        |> Map.put(:played_at_date, DateTime.to_date(played_at))
+        |> Map.put(:played_at_time, DateTime.to_time(played_at))
+    end
+    |> Performance.changeset(attrs)
+    |> Ecto.Changeset.put_change(:venue_uuid, performance.venue_uuid)
   end
 
   defp get_venue_uuid_from_performance(%Performance{venue: %Bezirke.Venues.Venue{uuid: uuid}}), do: uuid
