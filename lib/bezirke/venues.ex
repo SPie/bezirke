@@ -7,6 +7,7 @@ defmodule Bezirke.Venues do
   alias Ecto.Repo
   alias Bezirke.Repo
 
+  alias Bezirke.Tour.Season
   alias Bezirke.Venues.Venue
 
   @doc """
@@ -106,5 +107,16 @@ defmodule Bezirke.Venues do
   """
   def change_venue(%Venue{} = venue, attrs \\ %{}) do
     Venue.changeset(venue, attrs)
+  end
+
+  def get_venues_for_season(%Season{id: season_id}) do
+    from(
+      v in Venue,
+      join: pf in assoc(v, :performances),
+      join: p in assoc(pf, :production),
+      where: p.season_id == ^season_id,
+      distinct: true
+    )
+    |> Repo.all()
   end
 end

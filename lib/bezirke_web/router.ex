@@ -67,6 +67,7 @@ defmodule BezirkeWeb.Router do
 
     live "/", ProductionSalesStatistics
     live "/statistics/performances", PerformanceSalesStatistics
+    live "/statistics/venues", VenueSalesStatistics
   end
 
   # Other scopes may use custom stacks.

@@ -231,7 +231,7 @@ defmodule Bezirke.Sales do
     do: sales_figures_with_tickets_count
 
   defp sum_tickets_count_for_sales_figures(
-  [%SalesFigures{tickets_count: tickets_count} = current_sales_figure | next_sales_figures],
+    [%SalesFigures{tickets_count: tickets_count} = current_sales_figure | next_sales_figures],
     tickets_count_sum,
     sales_figures_with_tickets_count
   ) do
