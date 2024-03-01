@@ -130,8 +130,8 @@ defmodule Bezirke.Tour do
     from(
       p in Production,
       join: pf in assoc(p, :performances),
-      where: p.id == ^id,
-      select: sum(pf.capacity)
+      select: sum(pf.capacity),
+      where: p.id == ^id
     )
     |> Repo.one()
     |> case do
@@ -205,6 +205,20 @@ defmodule Bezirke.Tour do
     |> Repo.preload(:production)
   end
 
+  def get_performances_for_venue_and_season_with_sales_figures(
+    %Venue{id: venue_id},
+    %Season{id: season_id}
+  ) do
+    from(
+      pf in Performance,
+      join: p in assoc(pf, :production),
+      where: pf.venue_id == ^venue_id,
+      where: p.season_id == ^season_id
+    )
+    |> Repo.all()
+    |> Repo.preload([:sales_figures, :production])
+  end
+
   def create_performance({:production, production_uuid}, attrs) do
     %Performance{production: get_production_by_uuid!(production_uuid)}
     |> do_create_performance(attrs)
@@ -276,10 +290,6 @@ defmodule Bezirke.Tour do
     |> Performance.changeset(attrs)
     |> Ecto.Changeset.put_change(:venue_uuid, performance.venue_uuid)
   end
-
-  defp get_venue_uuid_from_performance(%Performance{venue: %Bezirke.Venues.Venue{uuid: uuid}}), do: uuid
-
-  defp get_venue_uuid_from_performance(%Performance{}), do: nil
 
   @doc """
   Returns the list of seasons.

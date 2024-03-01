@@ -15,10 +15,12 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
 
     socket =
       socket
-      |> assign(seasons: get_seasons_options(seasons))
-      |> assign(productions_statistics: production_statistics)
-      |> assign(labels: labels)
-      |> assign(datasets: datasets)
+      |> assign(
+        seasons: get_seasons_options(seasons),
+        productions_statistics: production_statistics,
+        labels: labels,
+        datasets: datasets
+      )
 
     {:ok, socket}
   end
@@ -28,12 +30,12 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       <.header>
         Production Sales Statistics
       </.header>
-      <.form>
+      <form>
         <.input id="season" name="season" label="Season" type="select" options={@seasons} phx-change="select_season" value=""/>
-      </.form>
+      </form>
 
       <div>
-        <%= for {production_title, sales_figures, capacity, tickets_count} <- @productions_statistics do %>
+        <%= for {production_title, _, capacity, tickets_count} <- @productions_statistics do %>
           <div>
             <h2>
               <%= production_title %>

@@ -8,23 +8,25 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
   def mount(_params, _session, socket) do
     seasons = Tour.list_seasons()
 
-    productions =
-      seasons
-      |> Tour.get_active_season()
-      |> Tour.get_productions_for_season()
+    active_season = Tour.get_active_season(seasons)
 
-    {performance_statisctics, labels, datasets} =
-      productions
-      |> List.first()
-      |> get_view_data()
+    productions = Tour.get_productions_for_season(active_season)
+
+    active_production = List.first(productions)
+
+    {performance_statisctics, labels, datasets} = get_view_data(active_production)
 
     socket =
       socket
-      |> assign(seasons: get_seasons_options(seasons))
-      |> assign(productions: get_productions_options(productions))
-      |> assign(performance_statisctics: performance_statisctics)
-      |> assign(labels: labels)
-      |> assign(datasets: datasets)
+      |> assign(
+        seasons: get_seasons_options(seasons),
+        productions: get_productions_options(productions),
+        season_value: active_season.uuid,
+        production_value: if active_production do active_production.uuid end,
+        performance_statisctics: performance_statisctics,
+        labels: labels,
+        datasets: datasets
+      )
 
     {:ok, socket}
   end
@@ -34,12 +36,12 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
       <.header>
         Performance Sales Statistics
       </.header>
-      <.form>
-        <.input id="season" name="season" label="Season" type="select" options={@seasons} phx-change="select_season" value=""/>
-        <.input id="production" name="production" label="Production" type="select" options={@productions} phx-change="select_production" value=""/>
-      </.form>
+      <form phx-change="select_production">
+        <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
+        <.input id="production" name="production" label="Production" type="select" options={@productions} value={@production_value} />
+      </form>
       <div>
-        <%= for {performance, sales_figures, capacity, tickets_count} <- @performance_statisctics do %>
+        <%= for {performance, _, capacity, tickets_count} <- @performance_statisctics do %>
           <div>
             <h2><%= performance %></h2>
             <p>
@@ -61,39 +63,35 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
     """
   end
 
-  def handle_event("select_season", %{"season" => season_uuid}, socket) do
-    productions =
-      season_uuid
-      |> Tour.get_season_by_uuid!()
-      |> Tour.get_productions_for_season()
+  def handle_event("select_production", %{"season" => season_uuid, "production" => production_uuid}, socket) do
+    active_season = Tour.get_season_by_uuid!(season_uuid)
 
-    {performance_statisctics, labels, datasets} =
+    productions = Tour.get_productions_for_season(active_season)
+
+    active_production =
       productions
-      |> List.first()
-      |> get_view_data()
+      |> Enum.find(&(&1.uuid == production_uuid))
+      |> case do
+        nil -> List.first(productions)
+        production -> production
+      end
+
+    {performance_statisctics, labels, datasets} = get_view_data(active_production)
 
     socket =
       socket
-      |> assign(productions: get_productions_options(productions))
-      |> assign(performance_statisctics: performance_statisctics)
+      |> assign(
+        productions: get_productions_options(productions),
+        season_value: season_uuid,
+        production_value: production_uuid,
+        performance_statisctics: performance_statisctics
+      )
       |> push_event("update-chart", %{labels: labels, datasets: datasets})
 
     {:noreply, socket}
   end
 
-  def handle_event("select_production", %{"production" => production_uuid}, socket) do
-    {performance_statisctics, labels, datasets} =
-      production_uuid
-      |> Tour.get_production_by_uuid!()
-      |> get_view_data()
-
-    socket =
-      socket
-      |> assign(performance_statisctics: performance_statisctics)
-      |> push_event("update-chart", %{labels: labels, datasets: datasets})
-
-    {:noreply, socket}
-  end
+  defp get_view_data(nil), do: {[], [], []}
 
   defp get_view_data(production) do
     performance_statisctics =
@@ -130,13 +128,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
 
   defp get_seasons_options(seasons) do
     seasons
-    |> Enum.map(fn season ->
-      [
-        key: season.name,
-        value: season.uuid,
-        selected: season.active,
-      ]
-    end)
+    |> Enum.map(fn season -> [key: season.name, value: season.uuid] end)
   end
 
   defp get_productions_options(productions) do
