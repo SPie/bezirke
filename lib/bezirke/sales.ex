@@ -7,6 +7,7 @@ defmodule Bezirke.Sales do
   alias Ecto.Multi
   alias Bezirke.Repo
 
+  alias Bezirke.Sales.MultiSalesFigures
   alias Bezirke.Sales.SalesFigures
   alias Bezirke.Tour
   alias Bezirke.Tour.Performance
@@ -49,29 +50,45 @@ defmodule Bezirke.Sales do
     |> Repo.preload([performance: [:production, :venue]])
   end
 
-  @doc """
-  Creates a sales_figures.
+  def create_multi_sales_figures(attrs) do
+    %MultiSalesFigures{}
+    |> MultiSalesFigures.changeset(attrs)
+    |> Map.replace(:action, :insert)
+    |> handle_multi_sales_figures_changeset()
+  end
 
-  ## Examples
+  defp handle_multi_sales_figures_changeset(%Ecto.Changeset{valid?: false} = changeset) do
+    {:error, changeset}
+  end
 
-      iex> create_sales_figures(%{field: value})
-      {:ok, %SalesFigures{}}
+  defp handle_multi_sales_figures_changeset(changeset) do
+    changeset
+    |> Ecto.Changeset.get_change(:sales_figures)
+    |> Enum.filter(fn sales_figures_changeset ->
+      tickets_count = Ecto.Changeset.get_change(sales_figures_changeset, :tickets_count)
 
-      iex> create_sales_figures(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
+      tickets_count != nil and tickets_count != 0 and tickets_count != ""
+    end)
+    |> Enum.reduce(Multi.new(), fn sales_figures_changeset, multi ->
+      multi
+      |> Multi.merge(fn _ -> insert_sales_figures(sales_figures_changeset) end)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, new_sales_figures} -> {:ok, new_sales_figures}
+      {:error, _, changeset, _} -> {:error, changeset}
+    end
+  end
 
-  """
-  def create_sales_figures(performance_uuid, attrs \\ %{}) do
-    changeset =
-      %SalesFigures{
-        performance: Tour.get_performance_by_uuid!(performance_uuid),
-        uuid: Repo.generate_uuid(),
-      }
-      |> SalesFigures.changeset(attrs)
+  defp insert_sales_figures(changeset) do
+    uuid = Ecto.Changeset.get_change(changeset, :uuid)
+    insert_key = "insert_sales_figures_" <> uuid
+    future_key = "future_sales_figures_" <> uuid
+    update_key = "updated_future_sales_figure_" <> uuid
 
     Multi.new()
-    |> Multi.insert(:new_sales_figures, changeset)
-    |> Multi.run(:future_sales_figures, fn (repo, %{new_sales_figures: %SalesFigures{performance_id: performance_id, record_date: record_date}}) ->
+    |> Multi.insert(insert_key, changeset)
+    |> Multi.run(future_key, fn (repo, %{^insert_key => %SalesFigures{performance_id: performance_id, record_date: record_date}}) ->
       future_sales_figures =
         from(
           s in SalesFigures,
@@ -84,15 +101,14 @@ defmodule Bezirke.Sales do
 
       {:ok, future_sales_figures}
     end)
-    |> Multi.merge(fn %{new_sales_figures: %SalesFigures{tickets_count: tickets_count}, future_sales_figures: future_sales_figures} ->
+    |> Multi.merge(fn %{^insert_key => %SalesFigures{tickets_count: tickets_count}, ^future_key => future_sales_figures} ->
       case future_sales_figures do
         nil -> Multi.new()
         %SalesFigures{tickets_count: current_tickets_count} = future_sales_figure ->
           Multi.new()
-          |> Multi.update(:updated_future_sales_figure, Ecto.Changeset.change(future_sales_figure, tickets_count: current_tickets_count + tickets_count * (-1)))
+          |> Multi.update(update_key, Ecto.Changeset.change(future_sales_figure, tickets_count: current_tickets_count + tickets_count * (-1)))
       end
     end)
-    |> Repo.transaction()
   end
 
   @doc """
@@ -165,6 +181,21 @@ defmodule Bezirke.Sales do
   """
   def change_sales_figures(%SalesFigures{} = sales_figures, attrs \\ %{}) do
     SalesFigures.changeset(sales_figures, attrs)
+  end
+
+  def change_multi_sales_figures(%MultiSalesFigures{} = multi_sales_figures, performances) do
+    sales_figures =
+      performances
+      |> Enum.map(fn %Performance{} = performance ->
+        SalesFigures.changeset_multi(
+          %SalesFigures{performance: performance, performance_uuid: performance.uuid},
+          %{}
+        )
+      end)
+
+    multi_sales_figures
+    |> MultiSalesFigures.changeset(%{})
+    |> Ecto.Changeset.put_embed(:sales_figures, sales_figures)
   end
 
   def change_sales_figures_for_update(%SalesFigures{} = sales_figures, attrs \\ %{}) do

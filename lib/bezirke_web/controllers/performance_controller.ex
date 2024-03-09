@@ -46,7 +46,7 @@ defmodule BezirkeWeb.PerformanceController do
     |> render(:new_for_venue, changeset: changeset, venue: Venues.get_venue_by_uuid!(venue_uuid))
   end
 
-  def show(conn, %{"uuid" => uuid, "origin" => origin} = params) do
+  def show(conn, %{"uuid" => uuid, "origin" => origin}) do
     performance = Tour.get_performance_by_uuid!(uuid)
     sales_figures = Sales.get_sales_figures_with_tickets_count_sum(performance)
 

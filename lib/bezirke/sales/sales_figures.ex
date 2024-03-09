@@ -1,14 +1,19 @@
 defmodule Bezirke.Sales.SalesFigures do
-  alias Bezirke.Sales
   use Ecto.Schema
   import Ecto.Changeset
+
+  alias Bezirke.Sales
+  alias Bezirke.Tour
+  alias Bezirke.Tour.Performance
 
   schema "sales_figures" do
     field :uuid, Ecto.UUID
     field :record_date, :utc_datetime
     field :tickets_count, :integer
 
-    belongs_to :performance, Bezirke.Tour.Performance
+    belongs_to :performance, Performance
+
+    field :performance_uuid, Ecto.UUID, virtual: true
 
     timestamps(type: :utc_datetime)
   end
@@ -26,6 +31,15 @@ defmodule Bezirke.Sales.SalesFigures do
     sales_figures
     |> cast(attrs, [:record_date, :tickets_count])
     |> validate_required([:record_date, :tickets_count])
+    |> cast_tickets_count()
+  end
+
+  def changeset_multi(sales_figures, attrs) do
+    sales_figures
+    |> cast(attrs, [:uuid, :tickets_count, :performance_uuid, :record_date])
+    |> validate_required([:uuid, :performance_uuid, :record_date])
+    |> cast_performance()
+    |> validate_required([:performance])
     |> cast_tickets_count()
   end
 
@@ -71,6 +85,14 @@ defmodule Bezirke.Sales.SalesFigures do
 
     changeset
     |> put_change(:tickets_count, tickets_count - total_tickets_count)
+  end
+
+  defp cast_performance(changeset) do
+    case get_change(changeset, :performance_uuid) do
+      nil -> changeset
+      performance_uuid ->
+        put_assoc(changeset, :performance, Tour.get_performance_by_uuid(performance_uuid))
+    end
   end
 end
 
