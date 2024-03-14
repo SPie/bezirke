@@ -9,6 +9,7 @@ defmodule BezirkeWeb.PerformanceHTML do
   attr :changeset, Ecto.Changeset, required: true
   attr :action, :string, required: true
   attr :production, Bezirke.Tour.Production, required: false, default: nil
+  attr :edit, :boolean, default: false
 
   def performance_form(assigns)
 

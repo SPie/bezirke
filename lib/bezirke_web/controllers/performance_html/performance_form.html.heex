@@ -6,10 +6,12 @@
   <.input field={f[:played_at_time]} type="time" />
   <.input field={f[:capacity]} type="number" label="Capacity" />
 
-  <%= if @production do %>
-    <.input field={f[:venue_uuid]} type="select" options={venues_list(@changeset)} />
-  <% else %>
-    <.input field={f[:production_uuid]} type="select" options={productions_list(@changeset)} />
+  <%= if !@edit do %>
+    <%= if @production do %>
+      <.input field={f[:venue_uuid]} type="select" options={venues_list(@changeset)} />
+    <% else %>
+      <.input field={f[:production_uuid]} type="select" options={productions_list(@changeset)} />
+    <% end %>
   <% end %>
 
   <:actions>
