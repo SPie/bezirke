@@ -10,13 +10,12 @@
   <.input field={f[:record_date]} type="datetime-local" label="Record date" />
 
   <.inputs_for :let={f_nested} field={f[:sales_figures]}>
-    <% f_nested |> IO.inspect() %>
+    <.input field={f_nested[:performance_uuid]} type="hidden" />
     <.input
-      field={f_nested[:performance_uuid]}
-      type="hidden"
+      field={f_nested[:tickets_count]}
+      type="number"
       label={@performance_labels[Map.get(f_nested.params, "performance_uuid", f_nested.data.performance_uuid)]}
     />
-    <.input field={f_nested[:tickets_count]} type="number" label="Tickets Count" />
   </.inputs_for>
 
   <:actions>
