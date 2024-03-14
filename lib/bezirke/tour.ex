@@ -4,12 +4,11 @@ defmodule Bezirke.Tour do
   """
 
   import Ecto.Query, warn: false
-  alias Bezirke.Repo
 
+  alias Bezirke.Repo
   alias Bezirke.Tour.Season
   alias Bezirke.Tour.Production
   alias Bezirke.Tour.Performance
-  alias Bezirke.Sales
   alias Bezirke.Venues
   alias Bezirke.Venues.Venue
 

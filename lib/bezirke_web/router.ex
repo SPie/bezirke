@@ -59,8 +59,8 @@ defmodule BezirkeWeb.Router do
     delete "/performances/:uuid", PerformanceController, :delete
 
     get "/sales-figures/:uuid", SalesFiguresController, :show
-    get "/performances/:performance_uuid/sales-figures/new", SalesFiguresController, :new
-    post "/performances/:performance_uuid/sales-figures", SalesFiguresController, :create
+    get "/productions/:production_uuid/sales-figures/new", SalesFiguresController, :new
+    post "/productions/:production_uuid/sales-figures", SalesFiguresController, :create
     get "/sales-figures/:uuid/edit", SalesFiguresController, :edit
     put "/sales-figures/:uuid", SalesFiguresController, :update
     delete "/sales-figures/:uuid", SalesFiguresController, :delete
@@ -68,6 +68,7 @@ defmodule BezirkeWeb.Router do
     live "/", ProductionSalesStatistics
     live "/statistics/performances", PerformanceSalesStatistics
     live "/statistics/venues", VenueSalesStatistics
+
   end
 
   # Other scopes may use custom stacks.

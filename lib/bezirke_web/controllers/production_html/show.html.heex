@@ -15,7 +15,18 @@
   <:item title="Description"><%= @production.description %></:item>
 </.list>
 
-<h2 class="pt-14">Performances</h2>
+<div>
+  <.link href={~p"/productions/#{@production}/sales-figures/new"}>
+    <.button>New Sales</.button>
+  </.link>
+</div>
+
+<div>
+  <h2 class="pt-14">Performances</h2>
+  <.link href={~p"/productions/#{@production}/performances/new"}>
+    <.button>New Performance</.button>
+  </.link>
+</div>
 
 <ul class="mt-2">
   <li
@@ -27,11 +38,5 @@
     <dd class="text-zinc-700"><%= performance.played_at %></dd>
   </li>
 </ul>
-
-<div>
-  <.link href={~p"/productions/#{@production}/performances/new"}>
-    <.button>New Performance</.button>
-  </.link>
-</div>
 
 <.back navigate={~p"/productions"}>Back to productions</.back>

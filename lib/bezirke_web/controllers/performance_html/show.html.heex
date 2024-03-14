@@ -31,12 +31,6 @@
   </li>
 </ul>
 
-<div>
-  <.link href={~p"/performances/#{@performance}/sales-figures/new"}>
-    <.button>New Sales Figure</.button>
-  </.link>
-</div>
-
 <%= if @origin == "production" do %>
   <.back navigate={~p"/productions/#{@performance.production}"}>Back to Production</.back>
 <% else %>
