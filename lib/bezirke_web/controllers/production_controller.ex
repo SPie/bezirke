@@ -36,7 +36,6 @@ defmodule BezirkeWeb.ProductionController do
     performances =
       production
       |> Tour.get_performances_for_production()
-      |> Enum.sort_by(&(&1.played_at), DateTime)
 
     render(conn, :show, production: production, performances: performances)
   end

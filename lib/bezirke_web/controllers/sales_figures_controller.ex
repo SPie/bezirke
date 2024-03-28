@@ -35,7 +35,11 @@ defmodule BezirkeWeb.SalesFiguresController do
     performance_labels =
       performances
       |> Enum.map(fn performance ->
-        {performance.uuid, performance.venue.name <> " " <> DateTime.to_string(performance.played_at)}
+        played_at =
+          performance.played_at
+          |> Calendar.strftime("%d.%m.%Y %H:%M")
+
+        {performance.uuid, performance.venue.name <> " " <> played_at}
       end)
       |> Enum.into(%{})
 
