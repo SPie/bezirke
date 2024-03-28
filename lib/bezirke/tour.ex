@@ -184,7 +184,8 @@ defmodule Bezirke.Tour do
   def get_performances_for_production(%Production{id: production_id}) do
     from(
       pf in Performance,
-      where: pf.production_id == ^production_id
+      where: pf.production_id == ^production_id,
+      order_by: pf.played_at
     )
     |> Repo.all()
     |> Repo.preload(:venue)
