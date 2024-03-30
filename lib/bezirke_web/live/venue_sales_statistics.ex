@@ -47,14 +47,13 @@ defmodule BezirkeWeb.VenueSalesStatistics do
       </form>
 
       <div>
-        <div>
-          <canvas
-            id="production-sales"
-            phx-hook="ChartJS"
-            data-labels={Jason.encode!(@labels)}
-            data-datasets={Jason.encode!(@datasets)}
-          />
-        </div>
+        <canvas
+          id="production-sales"
+          height="200"
+          phx-hook="ChartJS"
+          data-labels={Jason.encode!(@labels)}
+          data-datasets={Jason.encode!(@datasets)}
+        />
         <div>
           <%= for {performance_title, _, capacity, tickets_count} <- @performance_statistics do %>
             <div>

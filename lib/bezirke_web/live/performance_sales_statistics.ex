@@ -41,14 +41,13 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         <.input id="production" name="production" label="Production" type="select" options={@productions} value={@production_value} />
       </form>
       <div>
-        <div>
-          <canvas
-            id="production-sales"
-            phx-hook="ChartJS"
-            data-labels={Jason.encode!(@labels)}
-            data-datasets={Jason.encode!(@datasets)}
-          />
-        </div>
+        <canvas
+          id="production-sales"
+          height="200"
+          phx-hook="ChartJS"
+          data-labels={Jason.encode!(@labels)}
+          data-datasets={Jason.encode!(@datasets)}
+        />
         <div>
           <%= for {performance, _, capacity, tickets_count} <- @performance_statisctics do %>
             <div>
