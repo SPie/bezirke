@@ -41,24 +41,28 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         <.input id="production" name="production" label="Production" type="select" options={@productions} value={@production_value} />
       </form>
       <div>
-        <%= for {performance, _, capacity, tickets_count} <- @performance_statisctics do %>
-          <div>
-            <h2><%= performance %></h2>
-            <p>
-              <%= tickets_count %> / <%= capacity %>
-              (<%=  tickets_count / capacity * 100
-                |> Decimal.from_float()
-                |> Decimal.round(2)
-              %> %)
-            </p>
-          </div>
-        <% end %>
-        <canvas
-          id="production-sales"
-          phx-hook="ChartJS"
-          data-labels={Jason.encode!(@labels)}
-          data-datasets={Jason.encode!(@datasets)}
-        />
+        <div>
+          <canvas
+            id="production-sales"
+            phx-hook="ChartJS"
+            data-labels={Jason.encode!(@labels)}
+            data-datasets={Jason.encode!(@datasets)}
+          />
+        </div>
+        <div>
+          <%= for {performance, _, capacity, tickets_count} <- @performance_statisctics do %>
+            <div>
+              <h2><%= performance %></h2>
+              <p>
+                <%= tickets_count %> / <%= capacity %>
+                (<%=  tickets_count / capacity * 100
+                  |> Decimal.from_float()
+                  |> Decimal.round(2)
+                %> %)
+              </p>
+            </div>
+          <% end %>
+        </div>
       </div>
     """
   end

@@ -9,7 +9,6 @@ defmodule Bezirke.Sales do
 
   alias Bezirke.Sales.MultiSalesFigures
   alias Bezirke.Sales.SalesFigures
-  alias Bezirke.Tour
   alias Bezirke.Tour.Performance
   alias Bezirke.Tour.Production
 

@@ -35,27 +35,31 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       </form>
 
       <div>
-        <%= for {production_title, _, capacity, tickets_count} <- @productions_statistics do %>
-          <div>
-            <h2>
-              <%= production_title %>
-            </h2>
-            <p>
-              <%= tickets_count %>
-                / <%= capacity %>
-                (<%=  tickets_count / capacity * 100
-                  |> Decimal.from_float()
-                  |> Decimal.round(2)
-                %> %)
-            </p>
-          </div>
-        <% end %>
-        <canvas
-          id="production-sales"
-          phx-hook="ChartJS"
-          data-labels={Jason.encode!(@labels)}
-          data-datasets={Jason.encode!(@datasets)}
-        />
+        <div>
+          <canvas
+            id="production-sales"
+            phx-hook="ChartJS"
+            data-labels={Jason.encode!(@labels)}
+            data-datasets={Jason.encode!(@datasets)}
+          />
+        </div>
+        <div>
+          <%= for {production_title, _, capacity, tickets_count} <- @productions_statistics do %>
+            <div>
+              <h2>
+                <%= production_title %>
+              </h2>
+              <p>
+                <%= tickets_count %>
+                  / <%= capacity %>
+                  (<%=  tickets_count / capacity * 100
+                    |> Decimal.from_float()
+                    |> Decimal.round(2)
+                  %> %)
+              </p>
+            </div>
+          <% end %>
+        </div>
       </div>
     """
   end
