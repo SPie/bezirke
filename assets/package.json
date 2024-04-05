@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "chart.js": "^4.4.1"
+    "chart.js": "^4.4.1",
+    "chartjs-plugin-annotation": "^3.0.1"
   }
 }

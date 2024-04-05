@@ -23,6 +23,9 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 import Chart from "chart.js/auto";
+import annotationPlugin from 'chartjs-plugin-annotation';
+
+Chart.register(annotationPlugin);
 
 let hooks = {}
 
@@ -35,6 +38,41 @@ hooks.ChartJS = {
       data: {
         labels: JSON.parse(this.el.dataset.labels),
         datasets: JSON.parse(this.el.dataset.datasets),
+      },
+      options: {
+        plugins: {
+          annotation: {
+            annotations: {
+              // line1: {
+              //   type: 'line',
+              //   xMin: '2023-11-02',
+              //   xMax: '2023-11-02',
+              //   borderColor: 'rgb(255, 99, 132)',
+              //   borderWitdht: 2,
+              //   label: {
+              //     content: 'TEST',
+              //     display: true,
+              //     position: 'end',
+              //     backgroundColor: 'rgb(200, 200, 200)'
+              //   }
+              // },
+              // box1: {
+              //   type: 'box',
+              //   xMin: '2023-12-14',
+              //   xMax: '2024-01-02',
+              //   borderColor: 'rgb(255, 99, 132)',
+              //   borderWitdht: 2,
+              //   backgroundColor: 'rgba(255, 99, 132, 0.25)',
+              //   label: {
+              //     content: 'TEST with Period',
+              //     display: true,
+              //     position: 'start',
+              //     color: 'rgb(150, 150, 150)'
+              //   }
+              // }
+            }
+          }
+        }
       }
     }
 

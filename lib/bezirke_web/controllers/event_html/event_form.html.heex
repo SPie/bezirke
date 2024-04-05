@@ -1,0 +1,12 @@
+<.simple_form :let={f} for={@changeset} action={@action}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+  <.input field={f[:label]} type="text" label="Label" />
+  <.input field={f[:description]} type="text" label="Description" />
+  <.input field={f[:started_at]} type="date" label="Started at" />
+  <.input field={f[:ended_at]} type="date" label="Ended at" />
+  <:actions>
+    <.button>Save Event</.button>
+  </:actions>
+</.simple_form>
