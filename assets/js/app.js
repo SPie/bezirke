@@ -23,6 +23,9 @@ import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 import Chart from "chart.js/auto";
+import annotationPlugin from 'chartjs-plugin-annotation';
+
+Chart.register(annotationPlugin);
 
 let hooks = {}
 
@@ -35,12 +38,88 @@ hooks.ChartJS = {
       data: {
         labels: JSON.parse(this.el.dataset.labels),
         datasets: JSON.parse(this.el.dataset.datasets),
+      },
+      options: {
+        plugins: {
+          annotation: {
+            annotations: JSON.parse(this.el.dataset.events)
+              .map(event => {
+                if (event.ended_at) {
+                  return {
+                    type: 'box',
+                    xMin: event.started_at,
+                    xMax: event.ended_at,
+                    borderColor: 'rgb(255, 99, 132)',
+                    borderWitdht: 1,
+                    backgroundColor: 'rgba(255, 99, 132, 0.25)',
+                    label: {
+                      content: event.label,
+                      display: true,
+                      position: 'start',
+                      color: 'rgb(150, 150, 150)'
+                    }
+                  }
+                }
+
+                return {
+                  type: 'line',
+                  xMin: event.started_at,
+                  xMax: event.started_at,
+                  borderColor: 'rgb(255, 99, 132)',
+                  borderWitdht: 1,
+                  label: {
+                    content: event.label,
+                    display: true,
+                    position: 'end',
+                    backgroundColor: 'rgb(200, 200, 200)'
+                  }
+                }
+              })
+          }
+        }
       }
     }
 
     const chart = new Chart(ctx, data)
 
-    this.handleEvent('update-chart', (payload) => chart.data = payload)
+    this.handleEvent('update-chart', (payload) => {
+      chart.data.labels = payload.data.labels
+      chart.data.datasets = payload.data.datasets
+
+      chart.options.plugins.annotation.annotations = payload.data.events
+        .map(event => {
+          if (event.ended_at) {
+            return {
+              type: 'box',
+              xMin: event.started_at,
+              xMax: event.ended_at,
+              borderColor: 'rgb(255, 99, 132)',
+              borderWitdht: 2,
+              backgroundColor: 'rgba(255, 99, 132, 0.25)',
+              label: {
+                content: event.label,
+                display: true,
+                position: 'start',
+                color: 'rgb(150, 150, 150)'
+              }
+            }
+          }
+
+          return {
+            type: 'line',
+            xMin: event.started_at,
+            xMax: event.started_at,
+            borderColor: 'rgb(255, 99, 132)',
+            borderWitdht: 2,
+            label: {
+              content: event.label,
+              display: true,
+              position: 'end',
+              backgroundColor: 'rgb(200, 200, 200)'
+            }
+          }
+        })
+    })
   }
 }
 

@@ -8,7 +8,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   def mount(_params, _session, socket) do
     seasons = Tour.list_seasons()
 
-    {production_statistics, labels, datasets} =
+    {production_statistics, labels, datasets, events} =
       seasons
       |> Tour.get_active_season()
       |> get_view_data()
@@ -19,7 +19,8 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         seasons: get_seasons_options(seasons),
         productions_statistics: production_statistics,
         labels: labels,
-        datasets: datasets
+        datasets: datasets,
+        events: events
       )
 
     {:ok, socket}
@@ -41,6 +42,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
           phx-hook="ChartJS"
           data-labels={Jason.encode!(@labels)}
           data-datasets={Jason.encode!(@datasets)}
+          data-events={Jason.encode!(@events)}
         />
         <div>
           <%= for {production_title, _, capacity, tickets_count} <- @productions_statistics do %>
@@ -64,7 +66,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   end
 
   def handle_event("select_season", %{"season" => season_uuid}, socket) do
-    {production_statistics, labels, datasets} =
+    {production_statistics, labels, datasets, events} =
       season_uuid
       |> Tour.get_season_by_uuid!()
       |> get_view_data()
@@ -72,7 +74,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     socket =
       socket
       |> assign(productions_statistics: production_statistics)
-      |> push_event("update-chart", %{labels: labels, datasets: datasets})
+      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 
     {:noreply, socket}
   end
@@ -84,12 +86,12 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       |> Enum.map(&get_production_statistics/1)
       |> Enum.filter(fn {_, sales_figures, _, _} -> !Enum.empty?(sales_figures) end)
 
-    {labels, datasets} =
+    {labels, datasets, events} =
       production_statistics
       |> Enum.map(fn {production, sales_figures, _, _} -> {production, sales_figures} end)
       |> Statistics.build_chart()
 
-    {production_statistics, labels, datasets}
+    {production_statistics, labels, datasets, events}
   end
 
   defp get_seasons_options(seasons) do

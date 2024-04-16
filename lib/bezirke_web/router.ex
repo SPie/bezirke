@@ -65,6 +65,8 @@ defmodule BezirkeWeb.Router do
     put "/sales-figures/:uuid", SalesFiguresController, :update
     delete "/sales-figures/:uuid", SalesFiguresController, :delete
 
+    resources "/events", EventController, param: "uuid"
+
     live "/", ProductionSalesStatistics
     live "/statistics/performances", PerformanceSalesStatistics
     live "/statistics/venues", VenueSalesStatistics
