@@ -16,7 +16,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
     venues = Venues.get_venues_for_season(active_season)
     active_venue = venues |> List.first()
 
-    {performance_statistics, labels, datasets} =
+    {performance_statistics, labels, datasets, events} =
       venues
       |> List.first()
       |> get_view_data(active_season)
@@ -30,7 +30,8 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         venue_value: if active_venue do active_venue.uuid end,
         performance_statistics: performance_statistics,
         labels: labels,
-        datasets: datasets
+        datasets: datasets,
+        events: events
       )
 
     {:ok, socket}
@@ -53,6 +54,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
           phx-hook="ChartJS"
           data-labels={Jason.encode!(@labels)}
           data-datasets={Jason.encode!(@datasets)}
+          data-events={Jason.encode!(@events)}
         />
         <div>
           <%= for {performance_title, _, capacity, tickets_count} <- @performance_statistics do %>
@@ -80,7 +82,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
 
     venues = Venues.get_venues_for_season(active_season)
 
-    {performance_statistics, labels, datasets} =
+    {performance_statistics, labels, datasets, events} =
       venues
       |> Enum.find(&(&1.uuid == venue_uuid))
       |> case do
@@ -97,7 +99,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         venue_value: venue_uuid,
         performance_statistics: performance_statistics
       )
-      |> push_event("update-chart", %{labels: labels, datasets: datasets})
+      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 
     {:noreply, socket}
   end
@@ -111,14 +113,13 @@ defmodule BezirkeWeb.VenueSalesStatistics do
       |> Enum.map(&get_performance_statistics/1)
       |> Enum.filter(fn {_, sales_figures, _, _} -> !Enum.empty?(sales_figures) end)
 
-    {labels, datasets} =
+    {labels, datasets, events} =
       performance_statistics
       |> Enum.map(fn {performance, sales_figures, _, _} -> {performance, sales_figures} end)
       |> Statistics.build_chart()
 
-    {performance_statistics, labels, datasets}
+    {performance_statistics, labels, datasets, events}
   end
-
 
   defp get_performance_statistics(performance) do
     tickets_count =

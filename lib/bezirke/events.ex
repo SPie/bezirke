@@ -103,4 +103,13 @@ defmodule Bezirke.Events do
   def change_event(%Event{} = event, attrs \\ %{}) do
     Event.changeset(event, attrs)
   end
+
+  def get_events_for_period(start_date, end_date) do
+    from(
+      e in Event,
+      where: (is_nil(e.ended_at) and e.started_at >= ^start_date and e.started_at <= ^end_date)
+        or (not is_nil(e.ended_at) and e.started_at <= ^end_date and e.ended_at >= ^start_date)
+    )
+    |> Repo.all()
+  end
 end

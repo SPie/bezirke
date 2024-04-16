@@ -14,7 +14,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
 
     active_production = List.first(productions)
 
-    {performance_statisctics, labels, datasets} = get_view_data(active_production)
+    {performance_statisctics, labels, datasets, events} = get_view_data(active_production)
 
     socket =
       socket
@@ -25,7 +25,8 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         production_value: if active_production do active_production.uuid end,
         performance_statisctics: performance_statisctics,
         labels: labels,
-        datasets: datasets
+        datasets: datasets,
+        events: events
       )
 
     {:ok, socket}
@@ -47,6 +48,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
           phx-hook="ChartJS"
           data-labels={Jason.encode!(@labels)}
           data-datasets={Jason.encode!(@datasets)}
+          data-events={Jason.encode!(@events)}
         />
         <div>
           <%= for {performance, _, capacity, tickets_count} <- @performance_statisctics do %>
@@ -79,7 +81,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         production -> production
       end
 
-    {performance_statisctics, labels, datasets} = get_view_data(active_production)
+    {performance_statisctics, labels, datasets, events} = get_view_data(active_production)
 
     socket =
       socket
@@ -89,7 +91,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         production_value: production_uuid,
         performance_statisctics: performance_statisctics
       )
-      |> push_event("update-chart", %{labels: labels, datasets: datasets})
+      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 
     {:noreply, socket}
   end
@@ -103,12 +105,12 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
       |> Enum.map(&get_performance_statistics/1)
       |> Enum.filter(fn {_, sales_figures, _, _} -> !Enum.empty?(sales_figures) end)
 
-    {labels, datasets} =
+    {labels, datasets, events} =
       performance_statisctics
       |> Enum.map(fn {performance, sales_figures, _, _} -> {performance, sales_figures} end)
       |> Statistics.build_chart()
 
-    {performance_statisctics, labels, datasets}
+    {performance_statisctics, labels, datasets, events}
   end
 
   defp get_performance_statistics(performance) do

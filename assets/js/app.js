@@ -42,35 +42,39 @@ hooks.ChartJS = {
       options: {
         plugins: {
           annotation: {
-            annotations: {
-              // line1: {
-              //   type: 'line',
-              //   xMin: '2023-11-02',
-              //   xMax: '2023-11-02',
-              //   borderColor: 'rgb(255, 99, 132)',
-              //   borderWitdht: 2,
-              //   label: {
-              //     content: 'TEST',
-              //     display: true,
-              //     position: 'end',
-              //     backgroundColor: 'rgb(200, 200, 200)'
-              //   }
-              // },
-              // box1: {
-              //   type: 'box',
-              //   xMin: '2023-12-14',
-              //   xMax: '2024-01-02',
-              //   borderColor: 'rgb(255, 99, 132)',
-              //   borderWitdht: 2,
-              //   backgroundColor: 'rgba(255, 99, 132, 0.25)',
-              //   label: {
-              //     content: 'TEST with Period',
-              //     display: true,
-              //     position: 'start',
-              //     color: 'rgb(150, 150, 150)'
-              //   }
-              // }
-            }
+            annotations: JSON.parse(this.el.dataset.events)
+              .map(event => {
+                if (event.ended_at) {
+                  return {
+                    type: 'box',
+                    xMin: event.started_at,
+                    xMax: event.ended_at,
+                    borderColor: 'rgb(255, 99, 132)',
+                    borderWitdht: 1,
+                    backgroundColor: 'rgba(255, 99, 132, 0.25)',
+                    label: {
+                      content: event.label,
+                      display: true,
+                      position: 'start',
+                      color: 'rgb(150, 150, 150)'
+                    }
+                  }
+                }
+
+                return {
+                  type: 'line',
+                  xMin: event.started_at,
+                  xMax: event.started_at,
+                  borderColor: 'rgb(255, 99, 132)',
+                  borderWitdht: 1,
+                  label: {
+                    content: event.label,
+                    display: true,
+                    position: 'end',
+                    backgroundColor: 'rgb(200, 200, 200)'
+                  }
+                }
+              })
           }
         }
       }
@@ -78,7 +82,44 @@ hooks.ChartJS = {
 
     const chart = new Chart(ctx, data)
 
-    this.handleEvent('update-chart', (payload) => chart.data = payload)
+    this.handleEvent('update-chart', (payload) => {
+      chart.data.labels = payload.data.labels
+      chart.data.datasets = payload.data.datasets
+
+      chart.options.plugins.annotation.annotations = payload.data.events
+        .map(event => {
+          if (event.ended_at) {
+            return {
+              type: 'box',
+              xMin: event.started_at,
+              xMax: event.ended_at,
+              borderColor: 'rgb(255, 99, 132)',
+              borderWitdht: 2,
+              backgroundColor: 'rgba(255, 99, 132, 0.25)',
+              label: {
+                content: event.label,
+                display: true,
+                position: 'start',
+                color: 'rgb(150, 150, 150)'
+              }
+            }
+          }
+
+          return {
+            type: 'line',
+            xMin: event.started_at,
+            xMax: event.started_at,
+            borderColor: 'rgb(255, 99, 132)',
+            borderWitdht: 2,
+            label: {
+              content: event.label,
+              display: true,
+              position: 'end',
+              backgroundColor: 'rgb(200, 200, 200)'
+            }
+          }
+        })
+    })
   }
 }
 

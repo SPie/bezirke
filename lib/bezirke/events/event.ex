@@ -2,6 +2,8 @@ defmodule Bezirke.Events.Event do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder, only: [:uuid, :label, :description, :started_at, :ended_at]}
+
   schema "events" do
     field :label, :string
     field :description, :string
@@ -29,8 +31,9 @@ defmodule Bezirke.Events.Event do
     |> validate_ended_at(started_at, ended_at)
   end
 
-  defp validate_ended_at(changeset, nil, _), do: changeset
-  defp validate_ended_at(changeset, _, nil), do: changeset
+  defp validate_ended_at(changeset, started_at, ended_at)
+  when started_at == nil or ended_at == nil,
+    do: changeset
 
   defp validate_ended_at(changeset, started_at, ended_at) when started_at > ended_at do
     add_error(changeset, :ended_at, "can't be before start", validation: :ended_at)

@@ -3,32 +3,37 @@ defmodule Bezirke.Statistics do
   The Statistics context.
   """
 
+  alias Bezirke.Events
+  alias Bezirke.Events.Event
   alias Bezirke.Sales.SalesFigures
 
   def build_chart([]), do: {[], []}
 
   def build_chart(data) do
-    labels = 
+    dates = get_start_and_end_date(data)
+
+    labels =
+      dates
+      |> build_labels([])
+      |> Enum.reverse()
+
+    events = get_events_for_chart(dates)
+
+    datasets = build_datasets(labels, data)
+
+    {labels, datasets, events}
+  end
+
+  defp get_start_and_end_date([]), do: {}
+
+  defp get_start_and_end_date(data) do
+    dates =
       data
       |> Enum.flat_map(fn {_, sales_figures} ->
         Enum.map(sales_figures, &(DateTime.to_date(&1.record_date)))
       end)
-      |> get_labels()
+      |> Enum.sort_by(&(&1), Date)
 
-    datasets = build_datasets(labels, data)
-
-    {labels, datasets}
-  end
-
-  defp get_labels(dates) do
-    dates
-    |> Enum.sort_by(&(&1), Date)
-    |> get_labels_from_sales_figures()
-  end
-
-  defp get_labels_from_sales_figures([]), do: []
-
-  defp get_labels_from_sales_figures(dates) do
     start_date =
       dates
       |> List.first()
@@ -39,14 +44,15 @@ defmodule Bezirke.Statistics do
       |> List.last()
       |> Date.add(1)
 
-    build_labels(start_date, end_date, [])
-    |> Enum.reverse()
+    {start_date, end_date}
   end
 
-  defp build_labels(current_date, end_date, labels) do
+  defp build_labels({}, _), do: []
+
+  defp build_labels({current_date, end_date}, labels) do
     case Date.compare(current_date, end_date) do
       :eq -> [current_date | labels]
-      _ -> build_labels(Date.add(current_date, 1), end_date, [current_date | labels])
+      _ -> build_labels({Date.add(current_date, 1), end_date}, [current_date | labels])
     end
   end
 
@@ -94,6 +100,33 @@ defmodule Bezirke.Statistics do
     case Date.compare(current_date, DateTime.to_date(record_date)) do
       :eq -> sum_tickets_count(tickets_count + total_tickets_count, current_date, next_sales_figures)
       _ -> {total_tickets_count, sales_figures}
+    end
+  end
+
+  defp get_events_for_chart({}), do: []
+
+  defp get_events_for_chart({start_date, end_date}) do
+    Events.get_events_for_period(start_date, end_date)
+    |> Enum.map(fn event ->
+      event
+      |> set_maximum_started_at(start_date)
+      |> set_minimum_ended_at(end_date)
+    end)
+  end
+
+  defp set_maximum_started_at(%Event{started_at: started_at} = event, start_date) do
+    case Date.compare(start_date, started_at) do
+      :gt -> %Event{event | started_at: start_date}
+      _ -> event
+    end
+  end
+
+  defp set_minimum_ended_at(%Event{ended_at: nil} = event, _), do: event
+
+  defp set_minimum_ended_at(%Event{ended_at: ended_at} = event, end_date) do
+    case Date.compare(end_date, ended_at) do
+      :lt -> %Event{event | ended_at: end_date}
+      _ -> event
     end
   end
 end
