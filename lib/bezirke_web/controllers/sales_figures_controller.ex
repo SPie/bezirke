@@ -12,28 +12,18 @@ defmodule BezirkeWeb.SalesFiguresController do
 
     changeset = Sales.change_multi_sales_figures(%MultiSalesFigures{}, performances)
 
-    render_new(conn, changeset, production, performances)
+    render_new(conn, :new, changeset, production, performances)
   end
 
   def create(conn, %{"production_uuid" => production_uuid, "multi_sales_figures" => multi_sales_figures}) do
     multi_sales_figures
     |> Sales.create_multi_sales_figures()
-    |> handle_create_sales_figures_response(conn, Tour.get_production_by_uuid!(production_uuid))
+    |> handle_create_sales_figures_response(conn, Tour.get_production_by_uuid!(production_uuid), :new)
   end
 
-  defp handle_create_sales_figures_response({:ok, _}, conn, production) do
+  defp render_new(conn, template, changeset, production, performances) do
     conn
-    |> put_flash(:info, "Sales figures created successfully.")
-    |> redirect(to: ~p"/productions/#{production}")
-  end
-
-  defp handle_create_sales_figures_response({:error, %Ecto.Changeset{} = changeset}, conn, production) do
-    render_new(conn, changeset, production, Tour.get_performances_for_production(production))
-  end
-
-  defp render_new(conn, changeset, production, performances) do
-    conn
-    |> render(:new,
+    |> render(template,
       changeset: changeset,
       production: production,
       performance_labels: get_performance_labels(performances)
@@ -46,22 +36,23 @@ defmodule BezirkeWeb.SalesFiguresController do
 
     changeset = Sales.change_final_sales_figures(%MultiSalesFigures{}, performances)
 
-    render_new_final(conn, changeset, production, performances)
+    render_new(conn, :new_final, changeset, production, performances)
   end
 
   def create_final(conn, %{"production_uuid" => production_uuid, "multi_sales_figures" => multi_sales_figures}) do
     multi_sales_figures
     |> Sales.create_final_sales_figures()
-    |> handle_create_sales_figures_response(conn, Tour.get_production_by_uuid!(production_uuid))
+    |> handle_create_sales_figures_response(conn, Tour.get_production_by_uuid!(production_uuid), :new_final)
   end
 
-  defp render_new_final(conn, changeset, production, performances) do
-      conn
-      |> render(:new_final,
-        changeset: changeset,
-        production: production,
-        performance_labels: get_performance_labels(performances)
-      )
+  defp handle_create_sales_figures_response({:ok, _}, conn, production, _) do
+    conn
+    |> put_flash(:info, "Sales figures created successfully.")
+    |> redirect(to: ~p"/productions/#{production}")
+  end
+
+  defp handle_create_sales_figures_response({:error, %Ecto.Changeset{} = changeset}, conn, production, template) do
+    render_new(conn, template, changeset, production, Tour.get_performances_for_production(production))
   end
 
   defp get_performance_labels(performances) do

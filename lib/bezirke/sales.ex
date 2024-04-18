@@ -56,9 +56,15 @@ defmodule Bezirke.Sales do
     |> handle_multi_sales_figures_changeset()
   end
 
-  defp handle_multi_sales_figures_changeset(%Ecto.Changeset{valid?: false} = changeset) do
-    {:error, changeset}
+  def create_final_sales_figures(attrs) do
+    %MultiSalesFigures{}
+    |> MultiSalesFigures.changeset_final(attrs)
+    |> Map.replace(:action, :insert)
+    |> handle_final_sales_figures_changeset()
   end
+
+  defp handle_multi_sales_figures_changeset(%Ecto.Changeset{valid?: false} = changeset),
+    do: {:error, changeset}
 
   defp handle_multi_sales_figures_changeset(changeset) do
     changeset
@@ -68,6 +74,20 @@ defmodule Bezirke.Sales do
 
       tickets_count != nil and tickets_count != 0 and tickets_count != ""
     end)
+    |> handle_sales_figures_transactions()
+  end
+
+  defp handle_final_sales_figures_changeset(%Ecto.Changeset{valid?: false} = changeset),
+    do: {:error, changeset}
+
+  defp handle_final_sales_figures_changeset(changeset) do
+    changeset
+    |> Ecto.Changeset.get_change(:sales_figures)
+    |> handle_sales_figures_transactions()
+  end
+
+  defp handle_sales_figures_transactions(sales_figures_changeset) do
+    sales_figures_changeset
     |> Enum.reduce(Multi.new(), fn sales_figures_changeset, multi ->
       multi
       |> Multi.merge(fn _ -> insert_sales_figures(sales_figures_changeset) end)
@@ -108,31 +128,6 @@ defmodule Bezirke.Sales do
           |> Multi.update(update_key, Ecto.Changeset.change(future_sales_figure, tickets_count: current_tickets_count + tickets_count * (-1)))
       end
     end)
-  end
-
-  def create_final_sales_figures(attrs) do
-    %MultiSalesFigures{}
-    |> MultiSalesFigures.changeset_final(attrs)
-    |> Map.replace(:action, :insert)
-    |> handle_final_sales_figures_changeset()
-  end
-
-  defp handle_final_sales_figures_changeset(%Ecto.Changeset{valid?: false} = changeset) do
-    {:error, changeset}
-  end
-
-  defp handle_final_sales_figures_changeset(changeset) do
-    changeset
-    |> Ecto.Changeset.get_change(:sales_figures)
-    |> Enum.reduce(Multi.new(), fn sales_figures_changeset, multi ->
-      multi
-      |> Multi.merge(fn _ -> insert_sales_figures(sales_figures_changeset) end)
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, new_sales_figures} -> {:ok, new_sales_figures}
-      {:error, _, changeset, _} -> {:error, changeset}
-    end
   end
 
   @doc """
