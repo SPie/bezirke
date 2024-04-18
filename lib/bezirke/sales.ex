@@ -110,6 +110,31 @@ defmodule Bezirke.Sales do
     end)
   end
 
+  def create_final_sales_figures(attrs) do
+    %MultiSalesFigures{}
+    |> MultiSalesFigures.changeset_final(attrs)
+    |> Map.replace(:action, :insert)
+    |> handle_final_sales_figures_changeset()
+  end
+
+  defp handle_final_sales_figures_changeset(%Ecto.Changeset{valid?: false} = changeset) do
+    {:error, changeset}
+  end
+
+  defp handle_final_sales_figures_changeset(changeset) do
+    changeset
+    |> Ecto.Changeset.get_change(:sales_figures)
+    |> Enum.reduce(Multi.new(), fn sales_figures_changeset, multi ->
+      multi
+      |> Multi.merge(fn _ -> insert_sales_figures(sales_figures_changeset) end)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, new_sales_figures} -> {:ok, new_sales_figures}
+      {:error, _, changeset, _} -> {:error, changeset}
+    end
+  end
+
   @doc """
   Updates a sales_figures.
 
@@ -197,6 +222,21 @@ defmodule Bezirke.Sales do
     |> Ecto.Changeset.put_embed(:sales_figures, sales_figures)
   end
 
+  def change_final_sales_figures(%MultiSalesFigures{} = multi_sales_figures, performances) do
+    sales_figures =
+      performances
+      |> Enum.map(fn %Performance{} = performance ->
+        SalesFigures.changeset_multi_final(
+          %SalesFigures{performance: performance, performance_uuid: performance.uuid},
+          %{}
+        )
+      end)
+
+    multi_sales_figures
+    |> MultiSalesFigures.changeset(%{})
+    |> Ecto.Changeset.put_embed(:sales_figures, sales_figures)
+  end
+
   def change_sales_figures_for_update(%SalesFigures{} = sales_figures, attrs \\ %{}) do
     SalesFigures.changeset_for_update(sales_figures, attrs)
   end
@@ -217,7 +257,7 @@ defmodule Bezirke.Sales do
       s in SalesFigures,
       join: pf in assoc(s, :performance),
       where: pf.id == ^performance.id,
-      where: s.record_date < ^current_record_date,
+      where: s.record_date <= ^current_record_date,
       select: sum(s.tickets_count)
     )
     |> Repo.one!()

@@ -34,8 +34,9 @@ defmodule Bezirke.Sales.MultiSalesFigures do
     sales_figures =
       sales_figures
       |> Enum.map(fn {index, row} ->
-        row
-        |> Map.put("uuid", Repo.generate_uuid())
+        row =
+          row
+          |> Map.put("uuid", Repo.generate_uuid())
 
         {index, row}
       end)
@@ -53,5 +54,30 @@ defmodule Bezirke.Sales.MultiSalesFigures do
     |> cast(attrs, [:record_date])
     |> validate_required([:record_date])
     |> cast_embed(:sales_figures, with: &SalesFigures.changeset_multi/2)
+  end
+
+  def changeset_final(multi_sales_figures, %{"sales_figures" => sales_figures} = attrs) do
+    sales_figures =
+      sales_figures
+      |> Enum.map(fn {index, row} ->
+        row =
+          row
+          |> Map.put("uuid", Repo.generate_uuid())
+
+        {index, row}
+      end)
+      |> Enum.into(%{})
+
+    do_changeset_final(multi_sales_figures, Map.put(attrs, "sales_figures", sales_figures))
+  end
+
+  def changeset_final(multi_sales_figures, attrs) do
+    do_changeset_final(multi_sales_figures, attrs)
+  end
+
+  defp do_changeset_final(multi_sales_figures, attrs) do
+    multi_sales_figures
+    |> cast(attrs, [])
+    |> cast_embed(:sales_figures, with: &SalesFigures.changeset_multi_final/2)
   end
 end

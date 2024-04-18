@@ -64,6 +64,8 @@ defmodule BezirkeWeb.Router do
     get "/sales-figures/:uuid/edit", SalesFiguresController, :edit
     put "/sales-figures/:uuid", SalesFiguresController, :update
     delete "/sales-figures/:uuid", SalesFiguresController, :delete
+    get "/productions/:production_uuid/sales-figures/final/new", SalesFiguresController, :new_final
+    post "/productions/:production_uuid/sales-figures/final", SalesFiguresController, :create_final
 
     resources "/events", EventController, param: "uuid"
 
