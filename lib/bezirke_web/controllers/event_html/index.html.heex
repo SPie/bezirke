@@ -10,8 +10,8 @@
 <.table id="events" rows={@events} row_click={&JS.navigate(~p"/events/#{&1}")}>
   <:col :let={event} label="Label"><%= event.label %></:col>
   <:col :let={event} label="Description"><%= event.description %></:col>
-  <:col :let={event} label="Started at"><%= event.started_at %></:col>
-  <:col :let={event} label="Ended at"><%= event.ended_at %></:col>
+  <:col :let={event} label="Started at"><.date value={event.started_at} /></:col>
+  <:col :let={event} label="Ended at"><.date value={event.ended_at} /></:col>
   <:action :let={event}>
     <div class="sr-only">
       <.link navigate={~p"/events/#{event}"}>Show</.link>

@@ -1,6 +1,5 @@
 <.header>
   Production <%= @production.title %>
-  <:subtitle>This is a production record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/productions/#{@production}/edit"}>
       <.button>Edit production</.button>
@@ -35,7 +34,7 @@
     class="flex gap-4 py-4 text-sm leading-6 sm:gap-8 hover:cursor-pointer"
   >
     <dt class="w-1/4 flex-none text-zinc-500"><%= performance.venue.name %></dt>
-    <dd class="text-zinc-700"><%= performance.played_at %></dd>
+    <dd class="text-zinc-700"><.datetime value={performance.played_at} /></dd>
   </li>
 </ul>
 
