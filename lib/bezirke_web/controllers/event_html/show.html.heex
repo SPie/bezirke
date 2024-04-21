@@ -11,8 +11,8 @@
 <.list>
   <:item title="Label"><%= @event.label %></:item>
   <:item title="Description"><%= @event.description %></:item>
-  <:item title="Started at"><%= @event.started_at %></:item>
-  <:item title="Ended at"><%= @event.ended_at %></:item>
+  <:item title="Started at"><.date value={@event.started_at} /></:item>
+  <:item title="Ended at"><.date value={@event.ended_at} /></:item>
 </.list>
 
 <.back navigate={~p"/events"}>Back to events</.back>

@@ -671,4 +671,16 @@ defmodule BezirkeWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  attr :value, :any, required: true
+
+  def datetime(%{value: nil} = assigns), do: ~H""
+
+  def datetime(assigns), do: ~H"<%= Bezirke.DateTime.format_datetime(@value) %>"
+
+  attr :value, :any, required: true
+
+  def date(%{value: nil} = assigns), do: ~H""
+
+  def date(assigns), do: ~H"<%= Bezirke.DateTime.format_date(@value) %>"
 end
