@@ -43,6 +43,15 @@ defmodule Bezirke.Sales.SalesFigures do
     |> cast_tickets_count()
   end
 
+  def changeset_multi_final(sales_figures, attrs) do
+    sales_figures
+    |> cast(attrs, [:uuid, :tickets_count, :performance_uuid])
+    |> cast_performance()
+    |> cast_record_date_from_performance()
+    |> validate_required([:uuid, :performance_uuid, :performance, :record_date, :tickets_count])
+    |> cast_tickets_count()
+  end
+
   defp cast_tickets_count(%Ecto.Changeset{changes: %{
     performance: %Ecto.Changeset{data: performance},
     tickets_count: tickets_count,
@@ -92,6 +101,13 @@ defmodule Bezirke.Sales.SalesFigures do
       nil -> changeset
       performance_uuid ->
         put_assoc(changeset, :performance, Tour.get_performance_by_uuid(performance_uuid))
+    end
+  end
+
+  defp cast_record_date_from_performance(changeset) do
+    case get_change(changeset, :performance) do
+      nil -> changeset
+      performance -> put_change(changeset, :record_date, performance.data.played_at)
     end
   end
 end

@@ -1,0 +1,25 @@
+<.header>
+  Final Sales figures
+  <:subtitle>Create the final sales figures for a production.</:subtitle>
+</.header>
+
+<.simple_form :let={f} for={@changeset} action={~p"/productions/#{@production}/sales-figures/final"}>
+  <.error :if={@changeset.action}>
+    Oops, something went wrong! Please check the errors below.
+  </.error>
+
+  <.inputs_for :let={f_nested} field={f[:sales_figures]}>
+    <.input field={f_nested[:performance_uuid]} type="hidden" />
+    <.input
+      field={f_nested[:tickets_count]}
+      type="number"
+      label={@performance_labels[Map.get(f_nested.params, "performance_uuid", f_nested.data.performance_uuid)]}
+    />
+  </.inputs_for>
+
+  <:actions>
+    <.button>Save Sales figures</.button>
+  </:actions>
+</.simple_form>
+
+<.back navigate={~p"/productions/#{@production}"}>Back to production</.back>

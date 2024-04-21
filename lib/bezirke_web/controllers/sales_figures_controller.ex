@@ -12,43 +12,59 @@ defmodule BezirkeWeb.SalesFiguresController do
 
     changeset = Sales.change_multi_sales_figures(%MultiSalesFigures{}, performances)
 
-    render_new(conn, changeset, production, performances)
+    render_new(conn, :new, changeset, production, performances)
   end
 
   def create(conn, %{"production_uuid" => production_uuid, "multi_sales_figures" => multi_sales_figures}) do
     multi_sales_figures
     |> Sales.create_multi_sales_figures()
-    |> handle_create_sales_figures_response(conn, Tour.get_production_by_uuid!(production_uuid))
+    |> handle_create_sales_figures_response(conn, Tour.get_production_by_uuid!(production_uuid), :new)
   end
 
-  defp handle_create_sales_figures_response({:ok, _}, conn, production) do
+  defp render_new(conn, template, changeset, production, performances) do
+    conn
+    |> render(template,
+      changeset: changeset,
+      production: production,
+      performance_labels: get_performance_labels(performances)
+    )
+  end
+
+  def new_final(conn, %{"production_uuid" => production_uuid}) do
+    production = Tour.get_production_by_uuid!(production_uuid)
+    performances = Tour.get_performances_for_production(production)
+
+    changeset = Sales.change_final_sales_figures(%MultiSalesFigures{}, performances)
+
+    render_new(conn, :new_final, changeset, production, performances)
+  end
+
+  def create_final(conn, %{"production_uuid" => production_uuid, "multi_sales_figures" => multi_sales_figures}) do
+    multi_sales_figures
+    |> Sales.create_final_sales_figures()
+    |> handle_create_sales_figures_response(conn, Tour.get_production_by_uuid!(production_uuid), :new_final)
+  end
+
+  defp handle_create_sales_figures_response({:ok, _}, conn, production, _) do
     conn
     |> put_flash(:info, "Sales figures created successfully.")
     |> redirect(to: ~p"/productions/#{production}")
   end
 
-  defp handle_create_sales_figures_response({:error, %Ecto.Changeset{} = changeset}, conn, production) do
-    render_new(conn, changeset, production, Tour.get_performances_for_production(production))
+  defp handle_create_sales_figures_response({:error, %Ecto.Changeset{} = changeset}, conn, production, template) do
+    render_new(conn, template, changeset, production, Tour.get_performances_for_production(production))
   end
 
-  defp render_new(conn, changeset, production, performances) do
-    performance_labels =
-      performances
-      |> Enum.map(fn performance ->
-        played_at =
-          performance.played_at
-          |> Calendar.strftime("%d.%m.%Y %H:%M")
+  defp get_performance_labels(performances) do
+    performances
+    |> Enum.map(fn performance ->
+      played_at =
+        performance.played_at
+        |> Calendar.strftime("%d.%m.%Y %H:%M")
 
-        {performance.uuid, performance.venue.name <> " " <> played_at}
-      end)
-      |> Enum.into(%{})
-
-    conn
-    |> render(:new,
-      changeset: changeset,
-      production: production,
-      performance_labels: performance_labels
-    )
+      {performance.uuid, performance.venue.name <> " " <> played_at}
+    end)
+    |> Enum.into(%{})
   end
 
   def show(conn, %{"uuid" => uuid}) do
