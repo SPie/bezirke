@@ -132,7 +132,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
       )
 
     {
-      performance.production.title,
+      performance.production.title <> " " <> Bezirke.DateTime.format_datetime(performance.played_at),
       performance.sales_figures,
       performance.capacity,
       tickets_count,

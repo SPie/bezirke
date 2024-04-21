@@ -36,7 +36,7 @@ hooks.ChartJS = {
     const data = {
       type: 'line',
       data: {
-        labels: JSON.parse(this.el.dataset.labels),
+        labels: JSON.parse(this.el.dataset.labels).map((label) => (new Date(label)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"})),
         datasets: JSON.parse(this.el.dataset.datasets),
       },
       options: {
@@ -47,8 +47,8 @@ hooks.ChartJS = {
                 if (event.ended_at) {
                   return {
                     type: 'box',
-                    xMin: event.started_at,
-                    xMax: event.ended_at,
+                    xMin: (new Date(event.started_at)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}),
+                    xMax: (new Date(event.ended_at)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}),
                     borderColor: 'rgb(255, 99, 132)',
                     borderWitdht: 1,
                     backgroundColor: 'rgba(255, 99, 132, 0.25)',
@@ -63,8 +63,8 @@ hooks.ChartJS = {
 
                 return {
                   type: 'line',
-                  xMin: event.started_at,
-                  xMax: event.started_at,
+                  xMin: (new Date(event.started_at)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}),
+                  xMax: (new Date(event.started_at)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}),
                   borderColor: 'rgb(255, 99, 132)',
                   borderWitdht: 1,
                   label: {
@@ -83,7 +83,7 @@ hooks.ChartJS = {
     const chart = new Chart(ctx, data)
 
     this.handleEvent('update-chart', (payload) => {
-      chart.data.labels = payload.data.labels
+      chart.data.labels = payload.data.labels.map((label) => (new Date(label)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}))
       chart.data.datasets = payload.data.datasets
 
       chart.options.plugins.annotation.annotations = payload.data.events
@@ -91,8 +91,8 @@ hooks.ChartJS = {
           if (event.ended_at) {
             return {
               type: 'box',
-              xMin: event.started_at,
-              xMax: event.ended_at,
+              xMin: (new Date(event.started_at)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}),
+              xMax: (new Date(event.ended_at)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}),
               borderColor: 'rgb(255, 99, 132)',
               borderWitdht: 2,
               backgroundColor: 'rgba(255, 99, 132, 0.25)',
@@ -107,8 +107,8 @@ hooks.ChartJS = {
 
           return {
             type: 'line',
-            xMin: event.started_at,
-            xMax: event.started_at,
+            xMin: (new Date(event.started_at)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}),
+            xMax: (new Date(event.started_at)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"}),
             borderColor: 'rgb(255, 99, 132)',
             borderWitdht: 2,
             label: {
