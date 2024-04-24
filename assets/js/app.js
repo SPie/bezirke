@@ -121,6 +121,8 @@ hooks.ChartJS = {
             }
           }
         })
+
+      chart.update()
     })
   }
 }

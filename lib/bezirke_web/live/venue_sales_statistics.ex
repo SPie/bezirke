@@ -19,7 +19,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
     {performance_statistics, labels, datasets, events} =
       venues
       |> List.first()
-      |> get_view_data(active_season)
+      |> get_view_data(active_season, false)
 
     socket =
       socket
@@ -31,7 +31,8 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         performance_statistics: performance_statistics,
         labels: labels,
         datasets: datasets,
-        events: events
+        events: events,
+        use_percent: false
       )
 
     {:ok, socket}
@@ -45,6 +46,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
       <form phx-change="select_venue">
         <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value}/>
         <.input id="venue" name="venue" label="Venue" type="select" options={@venues} value={@venue_value}/>
+        <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
       </form>
 
       <div>
@@ -77,7 +79,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
     """
   end
 
-  def handle_event("select_venue", %{"season" => season_uuid, "venue" => venue_uuid}, socket) do
+  def handle_event("select_venue", %{"season" => season_uuid, "venue" => venue_uuid, "use-percent" => use_percent}, socket) do
     active_season = Tour.get_season_by_uuid!(season_uuid)
 
     venues = Venues.get_venues_for_season(active_season)
@@ -89,7 +91,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         nil -> List.first(venues)
         venue -> venue
       end
-      |> get_view_data(active_season)
+      |> get_view_data(active_season, use_percent)
 
     socket =
       socket
@@ -97,7 +99,8 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         venues: get_venues_options(venues),
         season_value: season_uuid,
         venue_value: venue_uuid,
-        performance_statistics: performance_statistics
+        performance_statistics: performance_statistics,
+        use_percent: use_percent
       )
       |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 
@@ -106,7 +109,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
 
   defp get_view_data(nil, _), do: {[], [], []}
 
-  defp get_view_data(venue, season) do
+  defp get_view_data(venue, season, use_percent) do
     performance_statistics =
       venue
       |> Tour.get_performances_for_venue_and_season_with_sales_figures(season)
@@ -115,8 +118,8 @@ defmodule BezirkeWeb.VenueSalesStatistics do
 
     {labels, datasets, events} =
       performance_statistics
-      |> Enum.map(fn {performance, sales_figures, _, _} -> {performance, sales_figures} end)
-      |> Statistics.build_chart()
+      |> Enum.map(fn {performance, sales_figures, capacity, _} -> {performance, sales_figures, capacity} end)
+      |> Statistics.build_chart(use_percent)
 
     {performance_statistics, labels, datasets, events}
   end

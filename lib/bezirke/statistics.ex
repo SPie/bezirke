@@ -7,9 +7,9 @@ defmodule Bezirke.Statistics do
   alias Bezirke.Events.Event
   alias Bezirke.Sales.SalesFigures
 
-  def build_chart([]), do: {[], []}
+  def build_chart([], _), do: {[], []}
 
-  def build_chart(data) do
+  def build_chart(data, use_percent) do
     dates = get_start_and_end_date(data)
 
     labels =
@@ -19,7 +19,7 @@ defmodule Bezirke.Statistics do
 
     events = get_events_for_chart(dates)
 
-    datasets = build_datasets(labels, data)
+    datasets = build_datasets(labels, data, use_percent)
 
     {labels, datasets, events}
   end
@@ -29,7 +29,7 @@ defmodule Bezirke.Statistics do
   defp get_start_and_end_date(data) do
     dates =
       data
-      |> Enum.flat_map(fn {_, sales_figures} ->
+      |> Enum.flat_map(fn {_, sales_figures, _} ->
         Enum.map(sales_figures, &(DateTime.to_date(&1.record_date)))
       end)
       |> Enum.sort_by(&(&1), Date)
@@ -56,35 +56,42 @@ defmodule Bezirke.Statistics do
     end
   end
 
-  defp build_datasets(labels, data) do
+  defp build_datasets(labels, data, use_percent) do
     data
-    |> Enum.map(fn {label, sales_figures} ->
+    |> Enum.map(fn {label, sales_figures, capacity} ->
       dataset =
         sales_figures
         |> Enum.sort_by(&(&1.record_date), DateTime)
-        |> build_dataset(labels, [])
+        |> do_build_dataset(labels, [])
         |> Enum.reverse()
+
+      dataset = if use_percent == "true" do
+        dataset
+        |> Enum.map(fn tickets_count -> (tickets_count / capacity * 100) end)
+      else
+        dataset
+      end
 
       %{label: label, data: dataset}
     end)
   end
 
-  defp build_dataset(_, [], tickets_count), do: tickets_count
+  defp do_build_dataset(_, [], tickets_count), do: tickets_count
 
-  defp build_dataset([], [_ | next_dates], [latest_tickets_count | _] = tickets_count) do
-    build_dataset([], next_dates, [latest_tickets_count | tickets_count])
+  defp do_build_dataset([], [_ | next_dates], [latest_tickets_count | _] = tickets_count) do
+    do_build_dataset([], next_dates, [latest_tickets_count | tickets_count])
   end
 
-  defp build_dataset(sales_figures, [current_date | next_dates], []) do
+  defp do_build_dataset(sales_figures, [current_date | next_dates], []) do
     {total_tickets_count, sales_figures} = sum_tickets_count(0, current_date, sales_figures)
 
-    build_dataset(sales_figures, next_dates, [total_tickets_count])
+    do_build_dataset(sales_figures, next_dates, [total_tickets_count])
   end
 
-  defp build_dataset(sales_figures, [current_date | next_dates], [latest_tickets_count | _] = tickets_count) do
+  defp do_build_dataset(sales_figures, [current_date | next_dates], [latest_tickets_count | _] = tickets_count) do
     {total_tickets_count, sales_figures} = sum_tickets_count(latest_tickets_count, current_date, sales_figures)
 
-    build_dataset(sales_figures, next_dates, [total_tickets_count | tickets_count])
+    do_build_dataset(sales_figures, next_dates, [total_tickets_count | tickets_count])
   end
 
   defp sum_tickets_count(total_tickets_count, _, []), do: {total_tickets_count, []}

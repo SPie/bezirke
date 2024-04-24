@@ -8,19 +8,22 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   def mount(_params, _session, socket) do
     seasons = Tour.list_seasons()
 
-    {production_statistics, labels, datasets, events} =
+    active_season =
       seasons
       |> Tour.get_active_season()
-      |> get_view_data()
+
+    {production_statistics, labels, datasets, events} = get_view_data(active_season, false)
 
     socket =
       socket
       |> assign(
+        season_value: active_season.uuid,
         seasons: get_seasons_options(seasons),
         productions_statistics: production_statistics,
         labels: labels,
         datasets: datasets,
-        events: events
+        events: events,
+        use_percent: false
       )
 
     {:ok, socket}
@@ -31,8 +34,9 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       <.header>
         Production Sales Statistics
       </.header>
-      <form>
-        <.input id="season" name="season" label="Season" type="select" options={@seasons} phx-change="select_season" value=""/>
+      <form phx-change="select_season">
+        <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
+        <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
       </form>
 
       <div>
@@ -65,21 +69,25 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     """
   end
 
-  def handle_event("select_season", %{"season" => season_uuid}, socket) do
+  def handle_event("select_season", %{"season" => season_uuid, "use-percent" => use_percent}, socket) do
     {production_statistics, labels, datasets, events} =
       season_uuid
       |> Tour.get_season_by_uuid!()
-      |> get_view_data()
+      |> get_view_data(use_percent)
 
     socket =
       socket
-      |> assign(productions_statistics: production_statistics)
+      |> assign(
+        season_value: season_uuid,
+        productions_statistics: production_statistics,
+        use_percent: use_percent
+      )
       |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 
     {:noreply, socket}
   end
 
-  defp get_view_data(season) do
+  defp get_view_data(season, use_percent) do
     production_statistics =
       season
       |> Tour.get_productions_for_season()
@@ -88,8 +96,8 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
 
     {labels, datasets, events} =
       production_statistics
-      |> Enum.map(fn {production, sales_figures, _, _} -> {production, sales_figures} end)
-      |> Statistics.build_chart()
+      |> Enum.map(fn {production, sales_figures, capacity, _} -> {production, sales_figures, capacity} end)
+      |> Statistics.build_chart(use_percent)
 
     {production_statistics, labels, datasets, events}
   end
