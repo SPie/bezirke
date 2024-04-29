@@ -38,10 +38,11 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
       <.header>
         Performance Sales Statistics
       </.header>
+      <% @use_percent |> IO.inspect() %>
       <form phx-change="select_production">
         <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
         <.input id="production" name="production" label="Production" type="select" options={@productions} value={@production_value} />
-        <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
+        <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} value="true" />
       </form>
       <div>
         <canvas
@@ -71,6 +72,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
   end
 
   def handle_event("select_production", %{"season" => season_uuid, "production" => production_uuid, "use-percent" => use_percent}, socket) do
+    use_percent |> IO.inspect()
     active_season = Tour.get_season_by_uuid!(season_uuid)
 
     productions = Tour.get_productions_for_season(active_season)
@@ -84,7 +86,6 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
       end
 
     {performance_statisctics, labels, datasets, events} = get_view_data(active_production, use_percent)
-    |> IO.inspect()
 
     socket =
       socket
@@ -93,7 +94,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         season_value: season_uuid,
         production_value: production_uuid,
         performance_statisctics: performance_statisctics,
-        use_percent: use_percent
+        use_percent: use_percent == "true"
       )
       |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 

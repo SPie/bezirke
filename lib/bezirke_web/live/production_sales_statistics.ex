@@ -80,7 +80,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       |> assign(
         season_value: season_uuid,
         productions_statistics: production_statistics,
-        use_percent: use_percent
+        use_percent: use_percent == "true"
       )
       |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 

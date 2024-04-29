@@ -100,7 +100,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         season_value: season_uuid,
         venue_value: venue_uuid,
         performance_statistics: performance_statistics,
-        use_percent: use_percent
+        use_percent: use_percent == "true"
       )
       |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 
