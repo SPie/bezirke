@@ -14,7 +14,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
 
     active_production = List.first(productions)
 
-    {performance_statisctics, labels, datasets, events} = get_view_data(active_production)
+    {performance_statisctics, labels, datasets, events} = get_view_data(active_production, false)
 
     socket =
       socket
@@ -26,7 +26,8 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         performance_statisctics: performance_statisctics,
         labels: labels,
         datasets: datasets,
-        events: events
+        events: events,
+        use_percent: false
       )
 
     {:ok, socket}
@@ -37,9 +38,11 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
       <.header>
         Performance Sales Statistics
       </.header>
+      <% @use_percent |> IO.inspect() %>
       <form phx-change="select_production">
         <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
         <.input id="production" name="production" label="Production" type="select" options={@productions} value={@production_value} />
+        <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} value="true" />
       </form>
       <div>
         <canvas
@@ -68,7 +71,8 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
     """
   end
 
-  def handle_event("select_production", %{"season" => season_uuid, "production" => production_uuid}, socket) do
+  def handle_event("select_production", %{"season" => season_uuid, "production" => production_uuid, "use-percent" => use_percent}, socket) do
+    use_percent |> IO.inspect()
     active_season = Tour.get_season_by_uuid!(season_uuid)
 
     productions = Tour.get_productions_for_season(active_season)
@@ -81,7 +85,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         production -> production
       end
 
-    {performance_statisctics, labels, datasets, events} = get_view_data(active_production)
+    {performance_statisctics, labels, datasets, events} = get_view_data(active_production, use_percent)
 
     socket =
       socket
@@ -89,16 +93,17 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         productions: get_productions_options(productions),
         season_value: season_uuid,
         production_value: production_uuid,
-        performance_statisctics: performance_statisctics
+        performance_statisctics: performance_statisctics,
+        use_percent: use_percent == "true"
       )
       |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
 
     {:noreply, socket}
   end
 
-  defp get_view_data(nil), do: {[], [], []}
+  defp get_view_data(nil, _), do: {[], [], []}
 
-  defp get_view_data(production) do
+  defp get_view_data(production, use_percent) do
     performance_statisctics =
       production
       |> Tour.get_performances_for_production_with_sales_figures()
@@ -107,8 +112,8 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
 
     {labels, datasets, events} =
       performance_statisctics
-      |> Enum.map(fn {performance, sales_figures, _, _} -> {performance, sales_figures} end)
-      |> Statistics.build_chart()
+      |> Enum.map(fn {performance, sales_figures, capacity, _} -> {performance, sales_figures, capacity} end)
+      |> Statistics.build_chart(use_percent)
 
     {performance_statisctics, labels, datasets, events}
   end
