@@ -35,11 +35,12 @@ defmodule Bezirke.Events.Event do
   when started_at == nil or ended_at == nil,
     do: changeset
 
-  defp validate_ended_at(changeset, started_at, ended_at) when started_at > ended_at do
-    add_error(changeset, :ended_at, "can't be before start", validation: :ended_at)
+  defp validate_ended_at(changeset, started_at, ended_at) do
+    case Date.compare(started_at, ended_at) do
+      :gt -> add_error(changeset, :ended_at, "can't be before start", validation: :ended_at)
+      _ -> changeset
+    end
   end
-
-  defp validate_ended_at(changeset, _, _), do: changeset
 end
 
 defimpl Phoenix.Param, for: Bezirke.Events.Event do
