@@ -14,14 +14,16 @@
   <:item title="Description"><%= @production.description %></:item>
 </.list>
 
-<div>
-  <.link href={~p"/productions/#{@production}/sales-figures/new"}>
-    <.button>New Sales</.button>
-  </.link>
-  <.link href={~p"/productions/#{@production}/sales-figures/final/new"}>
-    <.button>Final Sales</.button>
-  </.link>
-</div>
+<%= if !Enum.empty?(@performances) do %>
+  <div>
+    <.link href={~p"/productions/#{@production}/sales-figures/new"}>
+      <.button>New Sales</.button>
+    </.link>
+    <.link href={~p"/productions/#{@production}/sales-figures/final/new"}>
+      <.button>Final Sales</.button>
+    </.link>
+  </div>
+<% end %>
 
 <div>
   <h2 class="pt-14">Performances</h2>

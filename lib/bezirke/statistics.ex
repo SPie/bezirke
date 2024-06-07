@@ -7,7 +7,7 @@ defmodule Bezirke.Statistics do
   alias Bezirke.Events.Event
   alias Bezirke.Sales.SalesFigures
 
-  def build_chart([], _), do: {[], []}
+  def build_chart([], _), do: {[], [], []}
 
   def build_chart(data, use_percent) do
     dates = get_start_and_end_date(data)
