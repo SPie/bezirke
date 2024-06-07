@@ -22,6 +22,12 @@ defmodule BezirkeWeb.SalesFiguresController do
     |> handle_create_sales_figures_response(conn, Tour.get_production_by_uuid!(production_uuid), :new)
   end
 
+  defp render_new(conn, _, _, production, []) do
+    conn
+    |> put_flash(:error, "No performances for new sales figures.")
+    |> redirect(to: ~p"/productions/#{production}")
+  end
+
   defp render_new(conn, template, changeset, production, performances) do
     conn
     |> render(template,
