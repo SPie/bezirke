@@ -2,18 +2,22 @@
 // https://tailwindcss.com/docs/configuration
 
 const plugin = require("tailwindcss/plugin")
+const colors = require("tailwindcss/colors")
 const fs = require("fs")
 const path = require("path")
 
 module.exports = {
+  darkMode: 'selector',
   content: [
     "./js/**/*.js",
     "../lib/bezirke_web.ex",
-    "../lib/bezirke_web/**/*.*ex"
+    "../lib/bezirke_web/**/*.*ex",
+    "../deps/phoenix_multi_select/lib/*.ex",
   ],
   theme: {
     extend: {
       colors: {
+        primary: colors.blue,
         brand: "#FD4F00",
       }
     },

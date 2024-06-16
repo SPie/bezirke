@@ -1,7 +1,6 @@
 defmodule BezirkeWeb.SalesFiguresController do
   use BezirkeWeb, :controller
 
-  alias Phoenix.HTML.Safe.DateTime
   alias Bezirke.Sales
   alias Bezirke.Sales.MultiSalesFigures
   alias Bezirke.Sales.SalesFigures

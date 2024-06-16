@@ -52,6 +52,7 @@ defmodule Bezirke.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:plug_cowboy, "~> 2.5"},
       {:contex, "~> 0.5.0"},
+      {:phoenix_multi_select, "~> 0.1"}
     ]
   end
 

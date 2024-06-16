@@ -25,11 +25,11 @@ import topbar from "../vendor/topbar"
 import Chart from "chart.js/auto";
 import annotationPlugin from 'chartjs-plugin-annotation';
 
+import hooks from './hooks';
+
 let format_date = (date) => (new Date(date)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"});
 
 Chart.register(annotationPlugin);
-
-let hooks = {}
 
 hooks.ChartJS = {
   mounted() {

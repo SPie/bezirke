@@ -4,6 +4,8 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   alias Bezirke.Sales
   alias Bezirke.Statistics
   alias Bezirke.Tour
+  alias Phoenix.LiveView.Components.MultiSelect
+  alias Phoenix.LiveView.Components.MultiSelect.Option
 
   def mount(_params, _session, socket) do
     seasons = Tour.list_seasons()
@@ -23,6 +25,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         labels: labels,
         datasets: datasets,
         events: events,
+        event_options: get_event_options(events),
         use_percent: false
       )
 
@@ -34,10 +37,17 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       <.header>
         Production Sales Statistics
       </.header>
-      <form phx-change="select_season">
+      <.form :let={f} for={%{}} phx-change="select_season">
         <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
         <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
-      </form>
+        <MultiSelect.multi_select
+          id="events"
+          form={f}
+          options={@event_options}
+          on_change={fn opts -> send(self(), {:updated_options, opts}) end}
+          class="light"
+        />
+      </.form>
 
       <div>
         <canvas
@@ -87,6 +97,12 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     {:noreply, socket}
   end
 
+  def handle_info({:updated_options, event_options}, socket) do
+    socket = assign(socket, :event_options, event_options)
+
+    {:noreply, socket}
+  end
+
   defp get_view_data(season, use_percent) do
     production_statistics =
       season
@@ -132,5 +148,10 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       capacity,
       tickets_count,
     }
+  end
+
+  defp get_event_options(events) do
+    events
+    |> Enum.map(fn event -> Option.new(%{id: event.id, label: event.label}) end)
   end
 end
