@@ -1,6 +1,7 @@
 defmodule BezirkeWeb.ProductionSalesStatistics do
   use BezirkeWeb, :live_view
 
+  alias Bezirke.Events
   alias Bezirke.Sales
   alias Bezirke.Statistics
   alias Bezirke.Tour
@@ -24,7 +25,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         productions_statistics: production_statistics,
         labels: labels,
         datasets: datasets,
-        events: events,
         event_options: get_event_options(events),
         use_percent: false
       )
@@ -56,7 +56,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
           phx-hook="ChartJS"
           data-labels={Jason.encode!(@labels)}
           data-datasets={Jason.encode!(@datasets)}
-          data-events={Jason.encode!(@events)}
         />
         <div>
           <%= for {production_title, _, capacity, tickets_count} <- @productions_statistics do %>
@@ -79,7 +78,8 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     """
   end
 
-  def handle_event("select_season", %{"season" => season_uuid, "use-percent" => use_percent}, socket) do
+  def handle_event("select_season", %{"season" => season_uuid, "use-percent" => use_percent} = params, socket) do
+    params |> IO.inspect()
     {production_statistics, labels, datasets, events} =
       season_uuid
       |> Tour.get_season_by_uuid!()
@@ -90,15 +90,25 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       |> assign(
         season_value: season_uuid,
         productions_statistics: production_statistics,
-        use_percent: use_percent == "true"
+        use_percent: use_percent == "true",
+        event_options: get_event_options(events)
       )
-      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
+      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets}})
 
     {:noreply, socket}
   end
 
   def handle_info({:updated_options, event_options}, socket) do
-    socket = assign(socket, :event_options, event_options)
+    events =
+      event_options
+      |> Enum.filter(&(&1.selected))
+      |> Enum.map(&(&1.id))
+      |> Events.get_by_ids()
+
+    socket =
+      socket
+      |> assign(event_options: event_options)
+      |> push_event('set-events', %{data: %{events: events}})
 
     {:noreply, socket}
   end
