@@ -55,12 +55,12 @@ hooks.ChartJS = {
     this.handleEvent('update-chart', (payload) => {
       chart.data.labels = payload.data.labels.map((label) => format_date(label))
       chart.data.datasets = payload.data.datasets
+      chart.options.plugins.annotation.annotations = []
 
       chart.update()
     })
 
-    this.handleEvent('set-events', (payload) => {
-      console.log("TEST")
+    this.handleEvent('set-chart-events', (payload) => {
       chart.options.plugins.annotation.annotations = payload.data.events
         .map(event => {
           if (event.ended_at) {

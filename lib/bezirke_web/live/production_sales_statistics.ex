@@ -41,7 +41,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
         <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
         <MultiSelect.multi_select
-          id="events"
+          id="chart-events-selection"
           form={f}
           options={@event_options}
           on_change={fn opts -> send(self(), {:updated_options, opts}) end}
@@ -107,8 +107,8 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
 
     socket =
       socket
+      |> push_event("set-chart-events", %{data: %{events: events}})
       |> assign(event_options: event_options)
-      |> push_event('set-events', %{data: %{events: events}})
 
     {:noreply, socket}
   end
