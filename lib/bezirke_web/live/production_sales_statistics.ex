@@ -2,6 +2,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   use BezirkeWeb, :live_view
 
   alias Bezirke.Events
+  alias Bezirke.Events.Event
   alias Bezirke.Sales
   alias Bezirke.Statistics
   alias Bezirke.Tour
@@ -25,7 +26,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         productions_statistics: production_statistics,
         labels: labels,
         datasets: datasets,
-        event_options: get_event_options(events),
+        event_options: get_event_options(events, []),
         use_percent: false
       )
 
@@ -78,8 +79,40 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     """
   end
 
+  def handle_event("select_season", %{"_target" => ["use-percent"], "season" => season_uuid, "use-percent" => use_percent} = params, socket) do
+    {production_statistics, labels, datasets, events} =
+      season_uuid
+      |> Tour.get_season_by_uuid!()
+      |> get_view_data(use_percent)
+
+    event_selection =
+      params
+      |> Map.get("chart-events-selection")
+      |> case do
+        nil -> []
+        selected_events -> selected_events
+      end
+      |> Enum.map(fn {key, _} -> key |> String.to_integer() end)
+
+    selected_events =
+      events
+      |> Enum.filter(fn %Event{id: id} -> Enum.member?(event_selection, id) end)
+
+    socket =
+      socket
+      |> assign(
+        season_value: season_uuid,
+        productions_statistics: production_statistics,
+        use_percent: use_percent == "true",
+        event_options: get_event_options(events, event_selection)
+      )
+      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets}})
+      |> push_event("set-chart-events", %{data: %{events: selected_events}})
+
+    {:noreply, socket}
+  end
+
   def handle_event("select_season", %{"season" => season_uuid, "use-percent" => use_percent} = params, socket) do
-    params |> IO.inspect()
     {production_statistics, labels, datasets, events} =
       season_uuid
       |> Tour.get_season_by_uuid!()
@@ -91,7 +124,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         season_value: season_uuid,
         productions_statistics: production_statistics,
         use_percent: use_percent == "true",
-        event_options: get_event_options(events)
+        event_options: get_event_options(events, [])
       )
       |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets}})
 
@@ -160,8 +193,14 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     }
   end
 
-  defp get_event_options(events) do
+  defp get_event_options(events, selected_events) do
     events
-    |> Enum.map(fn event -> Option.new(%{id: event.id, label: event.label}) end)
+    |> Enum.map(fn event ->
+      Option.new(%{
+        id: event.id,
+        label: event.label,
+        selected: Enum.member?(selected_events, event.id)
+      })
+    end)
   end
 end
