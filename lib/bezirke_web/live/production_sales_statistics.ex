@@ -1,13 +1,14 @@
 defmodule BezirkeWeb.ProductionSalesStatistics do
   use BezirkeWeb, :live_view
 
+  import BezirkeWeb.StatisticsLiveViewHelper
+
   alias Bezirke.Events
   alias Bezirke.Events.Event
   alias Bezirke.Sales
   alias Bezirke.Statistics
   alias Bezirke.Tour
   alias Phoenix.LiveView.Components.MultiSelect
-  alias Phoenix.LiveView.Components.MultiSelect.Option
 
   def mount(_params, _session, socket) do
     seasons = Tour.list_seasons()
@@ -46,7 +47,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
           form={f}
           options={@event_options}
           on_change={fn opts -> send(self(), {:updated_options, opts}) end}
-          class="light"
         />
       </.form>
 
@@ -79,7 +79,15 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     """
   end
 
-  def handle_event("select_season", %{"_target" => ["use-percent"], "season" => season_uuid, "use-percent" => use_percent} = params, socket) do
+  def handle_event(
+    "select_season",
+    %{
+      "_target" => ["use-percent"],
+      "season" => season_uuid,
+      "use-percent" => use_percent
+    } = params,
+    socket
+  ) do
     {production_statistics, labels, datasets, events} =
       season_uuid
       |> Tour.get_season_by_uuid!()
@@ -88,11 +96,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     event_selection =
       params
       |> Map.get("chart-events-selection")
-      |> case do
-        nil -> []
-        selected_events -> selected_events
-      end
-      |> Enum.map(fn {key, _} -> key |> String.to_integer() end)
+      |> get_event_selection()
 
     selected_events =
       events
@@ -112,7 +116,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     {:noreply, socket}
   end
 
-  def handle_event("select_season", %{"season" => season_uuid, "use-percent" => use_percent} = params, socket) do
+  def handle_event("select_season", %{"season" => season_uuid, "use-percent" => use_percent}, socket) do
     {production_statistics, labels, datasets, events} =
       season_uuid
       |> Tour.get_season_by_uuid!()
@@ -161,17 +165,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     {production_statistics, labels, datasets, events}
   end
 
-  defp get_seasons_options(seasons) do
-    seasons
-    |> Enum.map(fn season ->
-      [
-        key: season.name,
-        value: season.uuid,
-        selected: season.active,
-      ]
-    end)
-  end
-
   defp get_production_statistics(production) do
     sales_figures = Sales.get_sales_figures_for_production(production)
     capacity = Tour.get_total_capacity(production)
@@ -191,16 +184,5 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       capacity,
       tickets_count,
     }
-  end
-
-  defp get_event_options(events, selected_events) do
-    events
-    |> Enum.map(fn event ->
-      Option.new(%{
-        id: event.id,
-        label: event.label,
-        selected: Enum.member?(selected_events, event.id)
-      })
-    end)
   end
 end
