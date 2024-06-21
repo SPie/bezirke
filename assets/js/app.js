@@ -25,11 +25,11 @@ import topbar from "../vendor/topbar"
 import Chart from "chart.js/auto";
 import annotationPlugin from 'chartjs-plugin-annotation';
 
+import hooks from './hooks';
+
 let format_date = (date) => (new Date(date)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"});
 
 Chart.register(annotationPlugin);
-
-let hooks = {}
 
 hooks.ChartJS = {
   mounted() {
@@ -44,39 +44,7 @@ hooks.ChartJS = {
       options: {
         plugins: {
           annotation: {
-            annotations: JSON.parse(this.el.dataset.events)
-              .map(event => {
-                if (event.ended_at) {
-                  return {
-                    type: 'box',
-                    xMin: format_date(event.started_at),
-                    xMax: format_date(event.ended_at),
-                    borderColor: 'rgb(255, 99, 132)',
-                    borderWitdht: 1,
-                    backgroundColor: 'rgba(255, 99, 132, 0.25)',
-                    label: {
-                      content: event.label,
-                      display: true,
-                      position: 'start',
-                      color: 'rgb(150, 150, 150)'
-                    }
-                  }
-                }
-
-                return {
-                  type: 'line',
-                  xMin: format_date(event.started_at),
-                  xMax: format_date(event.started_at),
-                  borderColor: 'rgb(255, 99, 132)',
-                  borderWitdht: 1,
-                  label: {
-                    content: event.label,
-                    display: true,
-                    position: 'end',
-                    backgroundColor: 'rgb(200, 200, 200)'
-                  }
-                }
-              })
+            annotations: []
           }
         }
       }
@@ -87,7 +55,12 @@ hooks.ChartJS = {
     this.handleEvent('update-chart', (payload) => {
       chart.data.labels = payload.data.labels.map((label) => format_date(label))
       chart.data.datasets = payload.data.datasets
+      chart.options.plugins.annotation.annotations = []
 
+      chart.update()
+    })
+
+    this.handleEvent('set-chart-events', (payload) => {
       chart.options.plugins.annotation.annotations = payload.data.events
         .map(event => {
           if (event.ended_at) {

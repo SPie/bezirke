@@ -112,4 +112,12 @@ defmodule Bezirke.Events do
     )
     |> Repo.all()
   end
+
+  def get_by_ids(ids) do
+    from(
+      e in Event,
+      where: e.id in ^ids
+    )
+    |> Repo.all()
+  end
 end

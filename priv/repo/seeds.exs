@@ -180,3 +180,22 @@ for {recurded_at, ticket_count, performance_id} <- sales_figures do
   })
 end
 
+events = [
+  {"Event1", "First Event", ~D[2023-11-12], nil},
+  {"Event2", "Second Event", ~D[2023-11-28], nil},
+  {"Event3", "Thirs Event", ~D[2023-12-22], ~D[2023-12-28]},
+  {"Event4", "Fourth Event", ~D[2024-01-11], ~D[2024-01-14]},
+  {"Event5", "Fifth Event", ~D[2024-01-12], nil},
+  {"Event6", "Sixth Event", ~D[2024-01-31], nil},
+  {"Event7", "Seventh Event", ~D[2024-02-02], ~D[2024-02-23]},
+]
+
+for {label, description, started_at, ended_at} <- events do
+  Bezirke.Repo.insert!(%Bezirke.Events.Event{
+    label: label,
+    description: description,
+    started_at: started_at,
+    ended_at: ended_at,
+    uuid: Bezirke.Repo.generate_uuid(),
+  })
+end

@@ -86,6 +86,7 @@ defmodule BezirkeWeb do
       # Core UI components and translation
       import BezirkeWeb.CoreComponents
       import BezirkeWeb.Gettext
+      use    Phoenix.LiveView.Components.MultiSelect
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

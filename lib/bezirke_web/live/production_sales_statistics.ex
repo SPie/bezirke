@@ -1,9 +1,14 @@
 defmodule BezirkeWeb.ProductionSalesStatistics do
   use BezirkeWeb, :live_view
 
+  import BezirkeWeb.StatisticsLiveViewHelper
+
+  alias Bezirke.Events
+  alias Bezirke.Events.Event
   alias Bezirke.Sales
   alias Bezirke.Statistics
   alias Bezirke.Tour
+  alias Phoenix.LiveView.Components.MultiSelect
 
   def mount(_params, _session, socket) do
     seasons = Tour.list_seasons()
@@ -22,7 +27,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         productions_statistics: production_statistics,
         labels: labels,
         datasets: datasets,
-        events: events,
+        event_options: get_event_options(events, []),
         use_percent: false
       )
 
@@ -34,10 +39,16 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       <.header>
         Production Sales Statistics
       </.header>
-      <form phx-change="select_season">
+      <.form :let={f} for={%{}} phx-change="select_season">
         <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
         <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
-      </form>
+        <MultiSelect.multi_select
+          id="chart-events-selection"
+          form={f}
+          options={@event_options}
+          on_change={fn opts -> send(self(), {:updated_options, opts}) end}
+        />
+      </.form>
 
       <div>
         <canvas
@@ -46,7 +57,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
           phx-hook="ChartJS"
           data-labels={Jason.encode!(@labels)}
           data-datasets={Jason.encode!(@datasets)}
-          data-events={Jason.encode!(@events)}
         />
         <div>
           <%= for {production_title, _, capacity, tickets_count} <- @productions_statistics do %>
@@ -69,6 +79,43 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     """
   end
 
+  def handle_event(
+    "select_season",
+    %{
+      "_target" => ["use-percent"],
+      "season" => season_uuid,
+      "use-percent" => use_percent
+    } = params,
+    socket
+  ) do
+    {production_statistics, labels, datasets, events} =
+      season_uuid
+      |> Tour.get_season_by_uuid!()
+      |> get_view_data(use_percent)
+
+    event_selection =
+      params
+      |> Map.get("chart-events-selection")
+      |> get_event_selection()
+
+    selected_events =
+      events
+      |> Enum.filter(fn %Event{id: id} -> Enum.member?(event_selection, id) end)
+
+    socket =
+      socket
+      |> assign(
+        season_value: season_uuid,
+        productions_statistics: production_statistics,
+        use_percent: use_percent == "true",
+        event_options: get_event_options(events, event_selection)
+      )
+      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets}})
+      |> push_event("set-chart-events", %{data: %{events: selected_events}})
+
+    {:noreply, socket}
+  end
+
   def handle_event("select_season", %{"season" => season_uuid, "use-percent" => use_percent}, socket) do
     {production_statistics, labels, datasets, events} =
       season_uuid
@@ -80,9 +127,25 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       |> assign(
         season_value: season_uuid,
         productions_statistics: production_statistics,
-        use_percent: use_percent == "true"
+        use_percent: use_percent == "true",
+        event_options: get_event_options(events, [])
       )
-      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets, events: events}})
+      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets}})
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:updated_options, event_options}, socket) do
+    events =
+      event_options
+      |> Enum.filter(&(&1.selected))
+      |> Enum.map(&(&1.id))
+      |> Events.get_by_ids()
+
+    socket =
+      socket
+      |> push_event("set-chart-events", %{data: %{events: events}})
+      |> assign(event_options: event_options)
 
     {:noreply, socket}
   end
@@ -100,17 +163,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       |> Statistics.build_chart(use_percent)
 
     {production_statistics, labels, datasets, events}
-  end
-
-  defp get_seasons_options(seasons) do
-    seasons
-    |> Enum.map(fn season ->
-      [
-        key: season.name,
-        value: season.uuid,
-        selected: season.active,
-      ]
-    end)
   end
 
   defp get_production_statistics(production) do
