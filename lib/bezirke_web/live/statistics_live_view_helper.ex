@@ -27,7 +27,7 @@ defmodule BezirkeWeb.StatisticsLiveViewHelper do
     |> Enum.map(fn event ->
       Option.new(%{
         id: event.id,
-        label: event.label,
+        label: event.label <> " - " <> event.description,
         selected: Enum.member?(selected_events, event.id)
       })
     end)
