@@ -135,12 +135,16 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     {:noreply, socket}
   end
 
-  def handle_info({:updated_options, event_options}, socket) do
+  def handle_info(
+    {:updated_options, event_options},
+    %Phoenix.LiveView.Socket{assigns: %{labels: labels}} = socket
+  ) do
     events =
       event_options
       |> Enum.filter(&(&1.selected))
       |> Enum.map(&(&1.id))
       |> Events.get_by_ids()
+      |> Statistics.set_event_times_boundaries(labels)
 
     socket =
       socket

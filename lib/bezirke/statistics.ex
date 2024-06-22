@@ -136,4 +136,23 @@ defmodule Bezirke.Statistics do
       _ -> event
     end
   end
+
+  def set_event_times_boundaries(events, []), do: events
+
+  def set_event_times_boundaries(events, dates) do
+    start_date =
+      dates
+      |> List.first()
+
+    end_date =
+      dates
+      |> List.last()
+
+    events
+    |> Enum.map(fn event ->
+      event
+      |> set_maximum_started_at(start_date)
+      |> set_minimum_ended_at(end_date)
+    end)
+  end
 end

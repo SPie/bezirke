@@ -43,7 +43,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
       <.header>
         Performance Sales Statistics
       </.header>
-      <% @use_percent |> IO.inspect() %>
+      <% @use_percent %>
       <.form :let={f} for={%{}} phx-change="select_production">
         <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
         <.input id="production" name="production" label="Production" type="select" options={@productions} value={@production_value} />
@@ -91,7 +91,6 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
     } = params,
     socket
   ) do
-    use_percent |> IO.inspect()
     active_season = Tour.get_season_by_uuid!(season_uuid)
 
     productions = Tour.get_productions_for_season(active_season)
@@ -132,7 +131,6 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
   end
 
   def handle_event("select_production", %{"season" => season_uuid, "production" => production_uuid, "use-percent" => use_percent}, socket) do
-    use_percent |> IO.inspect()
     active_season = Tour.get_season_by_uuid!(season_uuid)
 
     productions = Tour.get_productions_for_season(active_season)
@@ -161,12 +159,16 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
     {:noreply, socket}
   end
 
-  def handle_info({:updated_options, event_options}, socket) do
+  def handle_info(
+    {:updated_options, event_options},
+    %Phoenix.LiveView.Socket{assigns: %{labels: labels}} = socket
+  ) do
     events =
       event_options
       |> Enum.filter(&(&1.selected))
       |> Enum.map(&(&1.id))
       |> Events.get_by_ids()
+      |> Statistics.set_event_times_boundaries(labels)
 
     socket =
       socket
