@@ -3,8 +3,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
 
   import BezirkeWeb.StatisticsLiveViewHelper
 
-  alias Bezirke.Events
-  alias Bezirke.Events.Event
   alias Bezirke.Sales
   alias Bezirke.Statistics
   alias Bezirke.Tour
@@ -93,25 +91,16 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       |> Tour.get_season_by_uuid!()
       |> get_view_data(use_percent)
 
-    event_selection =
-      params
-      |> Map.get("chart-events-selection")
-      |> get_event_selection()
-
-    selected_events =
-      events
-      |> Enum.filter(fn %Event{id: id} -> Enum.member?(event_selection, id) end)
+    event_selection = get_event_selection(params)
 
     socket =
       socket
       |> assign(
         season_value: season_uuid,
-        productions_statistics: production_statistics,
-        use_percent: use_percent == "true",
-        event_options: get_event_options(events, event_selection)
+        production_statistics: production_statistics
       )
-      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets}})
-      |> push_event("set-chart-events", %{data: %{events: selected_events}})
+      |> update_chart(labels, datasets, events, use_percent, event_selection)
+      |> update_chart_events(events, event_selection)
 
     {:noreply, socket}
   end
@@ -126,30 +115,17 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       socket
       |> assign(
         season_value: season_uuid,
-        productions_statistics: production_statistics,
-        use_percent: use_percent == "true",
-        event_options: get_event_options(events, [])
+        production_statistics: production_statistics
       )
-      |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets}})
+      |> update_chart(labels, datasets, events, use_percent, [])
 
     {:noreply, socket}
   end
 
-  def handle_info(
-    {:updated_options, event_options},
-    %Phoenix.LiveView.Socket{assigns: %{labels: labels}} = socket
-  ) do
-    events =
-      event_options
-      |> Enum.filter(&(&1.selected))
-      |> Enum.map(&(&1.id))
-      |> Events.get_by_ids()
-      |> Statistics.set_event_times_boundaries(labels)
-
+  def handle_info({:updated_options, event_options}, socket) do
     socket =
       socket
-      |> push_event("set-chart-events", %{data: %{events: events}})
-      |> assign(event_options: event_options)
+      |> update_event_options(event_options)
 
     {:noreply, socket}
   end
