@@ -111,7 +111,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         productions: get_productions_options(productions),
         season_value: season_uuid,
         production_value: production_uuid,
-        performance_statisctics: performance_statisctics,
+        performance_statisctics: performance_statisctics
       )
       |> update_chart(labels, datasets, events, use_percent, event_selection)
       |> update_chart_events(events, event_selection)
@@ -140,7 +140,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         productions: get_productions_options(productions),
         season_value: season_uuid,
         production_value: production_uuid,
-        performance_statisctics: performance_statisctics,
+        performance_statisctics: performance_statisctics
       )
       |> update_chart(labels, datasets, events, use_percent, [])
 

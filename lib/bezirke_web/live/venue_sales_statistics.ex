@@ -118,7 +118,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         venues: get_venues_options(venues),
         season_value: season_uuid,
         venue_value: venue_uuid,
-        performance_statistics: performance_statistics,
+        performance_statistics: performance_statistics
       )
       |> update_chart(labels, datasets, events, use_percent, event_selection)
       |> update_chart_events(events, event_selection)
@@ -146,7 +146,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         venues: get_venues_options(venues),
         season_value: season_uuid,
         venue_value: venue_uuid,
-        performance_statistics: performance_statistics,
+        performance_statistics: performance_statistics
       )
       |> update_chart(labels, datasets, events, use_percent, [])
 
