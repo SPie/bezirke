@@ -120,3 +120,7 @@ if config_env() == :prod do
     username: System.get_env("BASIC_AUTH_USERNAME"),
     password: System.get_env("BASIC_AUTH_PASSWORD")
 end
+
+# version tag
+config :bezirke, :version_tag,
+  System.get_env("VERSION_TAG", "0.7.2")
