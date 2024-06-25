@@ -1,35 +1,50 @@
-<header class="px-4 sm:px-6 lg:px-8">
-  <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
-    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
-      <a href={~p"/"} class="hover:text-zinc-700">
-        [Production Statistics]
-      </a>
-      <a href={~p"/statistics/performances"} class="hover:text-zinc-700">
-        [Performance Statistics]
-      </a>
-      <a href={~p"/statistics/venues"} class="hover:text-zinc-700">
-        [Venue Statistics]
+<div class="flex flex-col min-h-screen">
+  <header class="px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
+      <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
+        <a href={~p"/"} class="hover:text-zinc-700">
+          [Production Statistics]
+        </a>
+        <a href={~p"/statistics/performances"} class="hover:text-zinc-700">
+          [Performance Statistics]
+        </a>
+        <a href={~p"/statistics/venues"} class="hover:text-zinc-700">
+          [Venue Statistics]
+        </a>
+      </div>
+      <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
+        <a href={~p"/productions"} class="hover:text-zinc-700">
+          Productions
+        </a>
+        <a href={~p"/seasons"} class="hover:text-zinc-700">
+          Seasons
+        </a>
+        <a href={~p"/venues"} class="hover:text-zinc-700">
+          Venues
+        </a>
+        <a href={~p"/events"} class="hover:text-zinc-700">
+          Events
+        </a>
+      </div>
+    </div>
+  </header>
+  <main class="px-4 py-20 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-4xl">
+      <.flash_group flash={@flash} />
+      <%= @inner_content %>
+    </div>
+  </main>
+  <footer class="mt-auto">
+    <div class="text-right px-4">
+      <a href="https://github.com/spie/bezirke" target="_blank">
+        <%=
+          Application.fetch_env!(:bezirke, :version_tag)
+          |> case do
+            "dev" -> "dev"
+            version_tag -> "v" <> version_tag
+          end
+        %>
       </a>
     </div>
-    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
-      <a href={~p"/productions"} class="hover:text-zinc-700">
-        Productions
-      </a>
-      <a href={~p"/seasons"} class="hover:text-zinc-700">
-        Seasons
-      </a>
-      <a href={~p"/venues"} class="hover:text-zinc-700">
-        Venues
-      </a>
-      <a href={~p"/events"} class="hover:text-zinc-700">
-        Events
-      </a>
-    </div>
-  </div>
-</header>
-<main class="px-4 py-20 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-4xl">
-    <.flash_group flash={@flash} />
-    <%= @inner_content %>
-  </div>
-</main>
+  </footer>
+</div>
