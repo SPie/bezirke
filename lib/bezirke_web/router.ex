@@ -40,7 +40,8 @@ defmodule BezirkeWeb.Router do
     pipe_through :browser
 
     resources "/seasons", SeasonController, param: "uuid"
-    resources "/venues", VenueController, param: "uuid"
+    resources "/venues", VenueController, param: "uuid", except: [:show]
+    live "/venues/:uuid", VenueShow
   end
   
   scope "/", BezirkeWeb do
