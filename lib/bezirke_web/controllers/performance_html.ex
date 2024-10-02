@@ -13,18 +13,6 @@ defmodule BezirkeWeb.PerformanceHTML do
 
   def performance_form(assigns)
 
-  def productions_list(changeset) do
-    production_uuid = Ecto.Changeset.get_change(changeset, :production_uuid)
-
-    Bezirke.Tour.list_productions()
-    |> Enum.map(fn production -> [
-        key: production.title,
-        value: production.uuid,
-        selected: production.uuid == production_uuid,
-      ]
-    end)
-  end
-
   def venues_list(changeset) do
     venue_uuid = Ecto.Changeset.get_change(changeset, :venue_uuid)
 

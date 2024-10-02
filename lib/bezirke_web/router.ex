@@ -40,19 +40,19 @@ defmodule BezirkeWeb.Router do
     pipe_through :browser
 
     resources "/seasons", SeasonController, param: "uuid"
-    resources "/venues", VenueController, param: "uuid"
   end
-  
+
   scope "/", BezirkeWeb do
     pipe_through :browser
     pipe_through :active_season
 
-    resources "/productions", ProductionController, param: "uuid"
+    resources "/productions", ProductionController, param: "uuid", except: [:index]
+    live "/productions", ProductionsList
 
     get "/performances/:uuid", PerformanceController, :show
     get "/productions/:production_uuid/performances/new", PerformanceController, :new
     post "/productions/:production_uuid/performances", PerformanceController, :create
-    get "/venues/:venue_uuid/performances/new", PerformanceController, :new
+    live "/venues/:venue_uuid/performances", PerformanceNewForVenue
     post "/venues/:venue_uuid/performances", PerformanceController, :create
     get "/performances/:uuid/edit", PerformanceController, :edit
     put "/performances/:uuid", PerformanceController, :update
@@ -68,6 +68,9 @@ defmodule BezirkeWeb.Router do
     post "/productions/:production_uuid/sales-figures/final", SalesFiguresController, :create_final
 
     resources "/events", EventController, param: "uuid"
+
+    resources "/venues", VenueController, param: "uuid", except: [:show]
+    live "/venues/:uuid", VenueShow
 
     live "/", ProductionSalesStatistics
     live "/statistics/performances", PerformanceSalesStatistics

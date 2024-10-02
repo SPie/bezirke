@@ -1,7 +1,7 @@
 defmodule BezirkeWeb.PerformanceSalesStatistics do
   use BezirkeWeb, :live_view
 
-  import BezirkeWeb.StatisticsLiveViewHelper
+  import BezirkeWeb.LiveViewHelper
 
   alias Bezirke.Sales
   alias Bezirke.Statistics

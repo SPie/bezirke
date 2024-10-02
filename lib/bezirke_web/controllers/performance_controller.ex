@@ -8,22 +8,12 @@ defmodule BezirkeWeb.PerformanceController do
 
   def new(conn, %{"production_uuid" => production_uuid}) do
     changeset = Tour.change_performance(%Performance{})
-    render_new_performance(conn, changeset, {:production, production_uuid})
-  end
-
-  def new(conn, %{"venue_uuid" => venue_uuid}) do
-    changeset = Tour.change_performance(%Performance{})
-    render_new_performance(conn, changeset, {:venue, venue_uuid})
+    render_new_performance(conn, changeset, production_uuid)
   end
 
   def create(conn, %{"production_uuid" => production_uuid, "performance" => performance_params}) do
     Tour.create_performance({:production, production_uuid}, performance_params)
-    |> handle_create_performance_response(conn, {:production, production_uuid})
-  end
-
-  def create(conn, %{"venue_uuid" => venue_uuid, "performance" => performance_params}) do
-    Tour.create_performance({:venue, venue_uuid}, performance_params)
-    |> handle_create_performance_response(conn, {:venue, venue_uuid})
+    |> handle_create_performance_response(conn, production_uuid)
   end
 
   defp handle_create_performance_response({:ok, performance}, conn, _) do
@@ -32,18 +22,13 @@ defmodule BezirkeWeb.PerformanceController do
     |> redirect(to: ~p"/performances/#{performance}")
   end
 
-  defp handle_create_performance_response({:error, %Ecto.Changeset{} = changeset}, conn, production_or_venue) do
-    render_new_performance(conn, changeset, production_or_venue)
+  defp handle_create_performance_response({:error, %Ecto.Changeset{} = changeset}, conn, production_uuid) do
+    render_new_performance(conn, changeset, production_uuid)
   end
 
-  defp render_new_performance(conn, %Ecto.Changeset{} = changeset, {:production, production_uuid}) do
+  defp render_new_performance(conn, %Ecto.Changeset{} = changeset, production_uuid) do
     conn
     |> render(:new_for_production, changeset: changeset, production: Tour.get_production_by_uuid!(production_uuid))
-  end
-
-  defp render_new_performance(conn, %Ecto.Changeset{} = changeset, {:venue, venue_uuid}) do
-    conn
-    |> render(:new_for_venue, changeset: changeset, venue: Venues.get_venue_by_uuid!(venue_uuid))
   end
 
   def show(conn, %{"uuid" => uuid, "origin" => origin}) do

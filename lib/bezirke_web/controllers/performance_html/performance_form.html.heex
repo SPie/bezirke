@@ -7,11 +7,7 @@
   <.input field={f[:capacity]} type="number" label="Capacity" />
 
   <%= if !@edit do %>
-    <%= if @production do %>
-      <.input field={f[:venue_uuid]} type="select" options={venues_list(@changeset)} />
-    <% else %>
-      <.input field={f[:production_uuid]} type="select" options={productions_list(@changeset)} />
-    <% end %>
+    <.input field={f[:venue_uuid]} type="select" options={venues_list(@changeset)} />
   <% end %>
 
   <:actions>
