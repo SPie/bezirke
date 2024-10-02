@@ -65,7 +65,7 @@ defmodule BezirkeWeb.VenueShow do
       </ul>
 
       <div>
-        <.link navigate={~p"/venues/#{@venue}/performances/new?season=#{@season_value}"}>
+        <.link navigate={~p"/venues/#{@venue}/performances?season=#{@season_value}"}>
           <.button>New Performance</.button>
         </.link>
       </div>

@@ -41,7 +41,7 @@ defmodule BezirkeWeb.Router do
 
     resources "/seasons", SeasonController, param: "uuid"
   end
-  
+
   scope "/", BezirkeWeb do
     pipe_through :browser
     pipe_through :active_season
@@ -52,7 +52,7 @@ defmodule BezirkeWeb.Router do
     get "/performances/:uuid", PerformanceController, :show
     get "/productions/:production_uuid/performances/new", PerformanceController, :new
     post "/productions/:production_uuid/performances", PerformanceController, :create
-    get "/venues/:venue_uuid/performances/new", PerformanceController, :new
+    live "/venues/:venue_uuid/performances", PerformanceNewForVenue
     post "/venues/:venue_uuid/performances", PerformanceController, :create
     get "/performances/:uuid/edit", PerformanceController, :edit
     put "/performances/:uuid", PerformanceController, :update
