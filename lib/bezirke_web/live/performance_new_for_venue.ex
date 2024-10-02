@@ -7,15 +7,26 @@ defmodule BezirkeWeb.PerformanceNewForVenue do
   alias Bezirke.Tour.Performance
   alias Bezirke.Venues
 
-  def mount(%{"venue_uuid" => venue_uuid}, _session, socket) do
+  def mount(%{"venue_uuid" => venue_uuid} = params, _session, socket) do
     changeset = Tour.change_performance(%Performance{})
 
     venue = Venues.get_venue_by_uuid!(venue_uuid)
+
+    seasons = Tour.list_seasons()
+    active_season = case Map.get(params, "season") do
+      nil -> Tour.get_active_season(seasons)
+      season_uuid -> Tour.get_season_by_uuid!(season_uuid)
+    end
+
+    productions = Tour.get_productions_for_season(active_season)
 
     socket =
       socket
       |> assign(
         changeset: changeset,
+        seasons: get_seasons_options(seasons),
+        season_value: active_season.uuid,
+        productions: get_productions_options(productions),
         venue: venue
       )
 
@@ -36,7 +47,8 @@ defmodule BezirkeWeb.PerformanceNewForVenue do
           <.input field={f[:played_at_date]} type="date" label="Played at" />
           <.input field={f[:played_at_time]} type="time" />
           <.input field={f[:capacity]} type="number" label="Capacity" />
-          <.input field={f[:production_uuid]} type="select" options={productions_list(@changeset)} />
+          <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} phx-change="select_season" />
+          <.input label="Production" field={f[:production_uuid]} type="select" options={@productions} />
 
           <div class="mt-2 flex items-center justify-between gap-6">
             <.button>Save Performance</.button>
@@ -46,6 +58,23 @@ defmodule BezirkeWeb.PerformanceNewForVenue do
 
       <.back navigate={~p"/venues/#{@venue}"}>Back to venue</.back>
     """
+  end
+
+  def handle_event("select_season", %{"season" => season_uuid}, socket) do
+    productions =
+      season_uuid
+      |> Tour.get_season_by_uuid!()
+      |> Tour.get_productions_for_season()
+      |> get_productions_options()
+
+    socket =
+      socket
+      |> assign(
+        productions: productions,
+        season_value: season_uuid
+      )
+
+    {:noreply, socket}
   end
 
   def handle_event("save", %{"performance" => performance_params}, %{assigns: %{venue: venue}} = socket) do
@@ -71,17 +100,5 @@ defmodule BezirkeWeb.PerformanceNewForVenue do
       )
 
     {:noreply, socket}
-  end
-
-  def productions_list(changeset) do
-    production_uuid = Ecto.Changeset.get_change(changeset, :production_uuid)
-
-    Bezirke.Tour.list_productions()
-    |> Enum.map(fn production -> [
-        key: production.title,
-        value: production.uuid,
-        selected: production.uuid == production_uuid,
-      ]
-    end)
   end
 end
