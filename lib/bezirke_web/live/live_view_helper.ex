@@ -1,4 +1,4 @@
-defmodule BezirkeWeb.StatisticsLiveViewHelper do
+defmodule BezirkeWeb.LiveViewHelper do
   import Phoenix.Component
   import Phoenix.LiveView
 

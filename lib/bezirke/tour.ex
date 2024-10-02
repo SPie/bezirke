@@ -30,6 +30,7 @@ defmodule Bezirke.Tour do
   def get_productions_for_season(%Season{id: season_id}) do
     from(p in Production, where: p.season_id == ^season_id)
     |> Repo.all()
+    |> Repo.preload([:season])
   end
 
   @doc """
@@ -200,6 +201,20 @@ defmodule Bezirke.Tour do
     from(
       pf in Performance,
       where: pf.venue_id == ^venue_id
+    )
+    |> Repo.all()
+    |> Repo.preload(:production)
+  end
+
+  def get_performances_for_venue_and_season(
+    %Venue{id: venue_id},
+    %Season{id: season_id}
+  ) do
+    from(
+      pf in Performance,
+      join: p in assoc(pf, :production),
+      where: pf.venue_id == ^venue_id,
+      where: p.season_id == ^season_id
     )
     |> Repo.all()
     |> Repo.preload(:production)

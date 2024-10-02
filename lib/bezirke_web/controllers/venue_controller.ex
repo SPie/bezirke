@@ -31,18 +31,6 @@ defmodule BezirkeWeb.VenueController do
     |> render(:new, changeset: changeset)
   end
 
-  def show(conn, %{"uuid" => uuid}) do
-    venue = Venues.get_venue_by_uuid!(uuid)
-
-    performances =
-      venue
-      |> Tour.get_performances_for_venue()
-      |> Enum.sort_by(&(&1.played_at), DateTime)
-
-    conn
-    |> render(:show, venue: venue, performances: performances)
-  end
-
   def edit(conn, %{"uuid" => uuid}) do
     venue = Venues.get_venue_by_uuid!(uuid)
     changeset = Venues.change_venue(venue)

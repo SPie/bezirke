@@ -4,11 +4,6 @@ defmodule BezirkeWeb.ProductionController do
   alias Bezirke.Tour
   alias Bezirke.Tour.Production
 
-  def index(conn, _params) do
-    productions = Tour.list_productions()
-    render(conn, :index, productions: productions)
-  end
-
   def new(conn, _params) do
     changeset = Tour.change_production(%Production{})
     render(conn, :new, changeset: changeset)
