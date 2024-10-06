@@ -1,0 +1,8 @@
+<.header>
+  New Subscribers
+  <:subtitle><%= @venue.name %> - <%= @season.name %></:subtitle>
+</.header>
+
+<.subscriber_form changeset={@changeset} action={~p"/venues/#{@venue}/seasons/#{@season}/subscribers"} />
+
+<.back navigate={~p"/venues/#{@venue}"}>Back to Venue</.back>
