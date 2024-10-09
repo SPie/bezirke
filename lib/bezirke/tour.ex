@@ -449,4 +449,17 @@ defmodule Bezirke.Tour do
   def change_subscriber(%Subscriber{} = subscriber, attrs \\ %{}) do
     Subscriber.changeset(subscriber, attrs)
   end
+
+  def get_total_subscribers_for_season(%Season{id: season_id}) do
+    from(
+      sub in Subscriber,
+      select: sum(sub.quantity),
+      where: sub.season_id == ^season_id
+    )
+    |> Repo.one()
+    |> case do
+      nil -> 0
+      quantity -> quantity
+    end
+  end
 end

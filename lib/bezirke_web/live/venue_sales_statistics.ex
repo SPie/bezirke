@@ -1,4 +1,5 @@
 defmodule BezirkeWeb.VenueSalesStatistics do
+  alias Bezirke.Statistics.StatisticsData
   use BezirkeWeb, :live_view
 
   import BezirkeWeb.LiveViewHelper
@@ -8,6 +9,53 @@ defmodule BezirkeWeb.VenueSalesStatistics do
   alias Bezirke.Tour
   alias Bezirke.Venues
   alias Phoenix.LiveView.Components.MultiSelect
+
+  def render(assigns) do
+    ~H"""
+      <.header>
+        Venue Sales Statistics
+      </.header>
+      <.form :let={f} for={%{}} phx-change="select_venue">
+        <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value}/>
+        <.input id="venue" name="venue" label="Venue" type="select" options={@venues} value={@venue_value}/>
+        <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
+        <.input id="with-subscribers" name="with-subscribers" label="with subscribers" type="checkbox" checked={@with_subscribers} />
+        <MultiSelect.multi_select
+          id="chart-events-selection"
+          form={f}
+          options={@event_options}
+          on_change={fn opts -> send(self(), {:updated_options, opts}) end}
+        />
+      </.form>
+
+      <div>
+        <canvas
+          id="production-sales"
+          height="200"
+          phx-hook="ChartJS"
+          data-labels={Jason.encode!(@labels)}
+          data-datasets={Jason.encode!(@datasets)}
+        />
+        <div>
+          <%= for %StatisticsData{label: performance_title, capacity: capacity, tickets_count: tickets_count} <- @performance_statistics do %>
+            <div>
+              <h2>
+                <%= performance_title %>
+              </h2>
+              <p>
+                <%= tickets_count %>
+                  / <%= capacity %>
+                  (<%=  tickets_count / capacity * 100
+                    |> Decimal.from_float()
+                    |> Decimal.round(2)
+                  %> %)
+              </p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    """
+  end
 
   def mount(_params, _session, socket) do
     seasons = Tour.list_seasons()
@@ -35,56 +83,11 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         labels: labels,
         datasets: datasets,
         event_options: get_event_options(events, []),
-        use_percent: false
+        use_percent: false,
+        with_subscribers: true
       )
 
     {:ok, socket}
-  end
-
-  def render(assigns) do
-    ~H"""
-      <.header>
-        Venue Sales Statistics
-      </.header>
-      <.form :let={f} for={%{}} phx-change="select_venue">
-        <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value}/>
-        <.input id="venue" name="venue" label="Venue" type="select" options={@venues} value={@venue_value}/>
-        <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
-        <MultiSelect.multi_select
-          id="chart-events-selection"
-          form={f}
-          options={@event_options}
-          on_change={fn opts -> send(self(), {:updated_options, opts}) end}
-        />
-      </.form>
-
-      <div>
-        <canvas
-          id="production-sales"
-          height="200"
-          phx-hook="ChartJS"
-          data-labels={Jason.encode!(@labels)}
-          data-datasets={Jason.encode!(@datasets)}
-        />
-        <div>
-          <%= for {performance_title, _, capacity, tickets_count} <- @performance_statistics do %>
-            <div>
-              <h2>
-                <%= performance_title %>
-              </h2>
-              <p>
-                <%= tickets_count %>
-                  / <%= capacity %>
-                  (<%=  tickets_count / capacity * 100
-                    |> Decimal.from_float()
-                    |> Decimal.round(2)
-                  %> %)
-              </p>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    """
   end
 
   def handle_event(
@@ -168,11 +171,10 @@ defmodule BezirkeWeb.VenueSalesStatistics do
       venue
       |> Tour.get_performances_for_venue_and_season_with_sales_figures(season)
       |> Enum.map(&get_performance_statistics/1)
-      |> Enum.filter(fn {_, sales_figures, _, _} -> !Enum.empty?(sales_figures) end)
+      |> Enum.filter(fn %StatisticsData{sales_figures: sales_figures} -> !Enum.empty?(sales_figures) end)
 
     {labels, datasets, events} =
       performance_statistics
-      |> Enum.map(fn {performance, sales_figures, capacity, _} -> {performance, sales_figures, capacity} end)
       |> Statistics.build_chart(use_percent)
 
     {performance_statistics, labels, datasets, events}
@@ -188,11 +190,11 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         end
       )
 
-    {
-      performance.production.title <> " " <> Bezirke.DateTime.format_datetime(performance.played_at),
-      performance.sales_figures,
-      performance.capacity,
-      tickets_count,
+    %StatisticsData{
+      label: performance.production.title <> " " <> Bezirke.DateTime.format_datetime(performance.played_at),
+      sales_figures: performance.sales_figures,
+      capacity: performance.capacity,
+      tickets_count: tickets_count
     }
   end
 end

@@ -3,6 +3,7 @@ defmodule Bezirke.Statistics do
   The Statistics context.
   """
 
+  alias Bezirke.Statistics.StatisticsData
   alias Bezirke.Events
   alias Bezirke.Events.Event
   alias Bezirke.Sales.SalesFigures
@@ -29,7 +30,7 @@ defmodule Bezirke.Statistics do
   defp get_start_and_end_date(data) do
     dates =
       data
-      |> Enum.flat_map(fn {_, sales_figures, _} ->
+      |> Enum.flat_map(fn %StatisticsData{sales_figures: sales_figures} ->
         Enum.map(sales_figures, &(DateTime.to_date(&1.record_date)))
       end)
       |> Enum.sort_by(&(&1), Date)
@@ -58,7 +59,7 @@ defmodule Bezirke.Statistics do
 
   defp build_datasets(labels, data, use_percent) do
     data
-    |> Enum.map(fn {label, sales_figures, capacity} ->
+    |> Enum.map(fn %StatisticsData{label: label, sales_figures: sales_figures, capacity: capacity} ->
       dataset =
         sales_figures
         |> Enum.sort_by(&(&1.record_date), DateTime)
