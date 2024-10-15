@@ -1,7 +1,6 @@
 defmodule BezirkeWeb.VenueController do
   use BezirkeWeb, :controller
 
-  alias Bezirke.Tour
   alias Bezirke.Venues
   alias Bezirke.Venues.Venue
 

@@ -7,7 +7,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
   alias Bezirke.Sales
   alias Bezirke.Statistics
   alias Bezirke.Tour
-  alias Bezirke.Tour.Production
   alias Phoenix.LiveView.Components.MultiSelect
 
   def render(assigns) do
@@ -150,7 +149,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
 
     {labels, datasets, events} =
       production_statistics
-      |> Statistics.build_chart(use_percent?)
+      |> Statistics.build_chart(use_percent?, with_subscribers?)
 
     {production_statistics, labels, datasets, events}
   end
@@ -170,7 +169,10 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
 
     {capacity, tickets_count} = cond do
       with_subscribers? == false || with_subscribers? == "false" ->
-        {capacity - total_subscribers, tickets_count - total_subscribers}
+        {
+          max(capacity - total_subscribers, 0),
+          max(tickets_count - total_subscribers, 0)
+        }
       true -> {capacity, tickets_count}
     end
 

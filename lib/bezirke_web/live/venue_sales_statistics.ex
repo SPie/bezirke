@@ -70,7 +70,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
     {performance_statistics, labels, datasets, events} =
       venues
       |> List.first()
-      |> get_view_data(active_season, false)
+      |> get_view_data(active_season, false, true)
 
     socket =
       socket
@@ -96,7 +96,8 @@ defmodule BezirkeWeb.VenueSalesStatistics do
       "_target" => ["use-percent"],
       "season" => season_uuid,
       "venue" => venue_uuid,
-      "use-percent" => use_percent
+      "use-percent" => use_percent,
+      "with-subscribers" => with_subscribers?
     } = params,
     socket
   ) do
@@ -111,7 +112,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         nil -> List.first(venues)
         venue -> venue
       end
-      |> get_view_data(active_season, use_percent)
+      |> get_view_data(active_season, use_percent, with_subscribers?)
 
     event_selection = get_event_selection(params)
 
@@ -121,6 +122,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         venues: get_venues_options(venues),
         season_value: season_uuid,
         venue_value: venue_uuid,
+        with_subscribers: with_subscribers? == true || with_subscribers? == "true",
         performance_statistics: performance_statistics
       )
       |> update_chart(labels, datasets, events, use_percent, event_selection)
@@ -129,7 +131,16 @@ defmodule BezirkeWeb.VenueSalesStatistics do
     {:noreply, socket}
   end
 
-  def handle_event("select_venue", %{"season" => season_uuid, "venue" => venue_uuid, "use-percent" => use_percent}, socket) do
+  def handle_event(
+    "select_venue",
+    %{
+      "season" => season_uuid,
+      "venue" => venue_uuid,
+      "use-percent" => use_percent,
+      "with-subscribers" => with_subscribers?
+    },
+    socket
+  ) do
     active_season = Tour.get_season_by_uuid!(season_uuid)
 
     venues = Venues.get_venues_for_season(active_season)
@@ -141,7 +152,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         nil -> List.first(venues)
         venue -> venue
       end
-      |> get_view_data(active_season, use_percent)
+      |> get_view_data(active_season, use_percent, with_subscribers?)
 
     socket =
       socket
@@ -149,6 +160,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         venues: get_venues_options(venues),
         season_value: season_uuid,
         venue_value: venue_uuid,
+        with_subscribers: with_subscribers? == true || with_subscribers? == "true",
         performance_statistics: performance_statistics
       )
       |> update_chart(labels, datasets, events, use_percent, [])
@@ -164,23 +176,28 @@ defmodule BezirkeWeb.VenueSalesStatistics do
     {:noreply, socket}
   end
 
-  defp get_view_data(nil, _), do: {[], [], []}
+  defp get_view_data(nil, _, _, _), do: {[], [], []}
 
-  defp get_view_data(venue, season, use_percent) do
+  defp get_view_data(venue, season, use_percent, with_subscribers?) do
+    subscribers_quantity = case Tour.get_subscriber_for_venue_and_season(venue, season) do
+      nil -> 0
+      subscriber -> subscriber.quantity
+    end
+
     performance_statistics =
       venue
       |> Tour.get_performances_for_venue_and_season_with_sales_figures(season)
-      |> Enum.map(&get_performance_statistics/1)
+      |> Enum.map(fn performance -> get_performance_statistics(performance, subscribers_quantity, with_subscribers?) end)
       |> Enum.filter(fn %StatisticsData{sales_figures: sales_figures} -> !Enum.empty?(sales_figures) end)
 
     {labels, datasets, events} =
       performance_statistics
-      |> Statistics.build_chart(use_percent)
+      |> Statistics.build_chart(use_percent, with_subscribers?)
 
     {performance_statistics, labels, datasets, events}
   end
 
-  defp get_performance_statistics(performance) do
+  defp get_performance_statistics(performance, subscribers_quantity, with_subscribers?) do
     tickets_count =
       performance.sales_figures
       |> Enum.reduce(
@@ -190,11 +207,21 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         end
       )
 
+    {capacity, tickets_count} = cond do
+      with_subscribers? == false || with_subscribers? == "false" ->
+        {
+          max(performance.capacity - subscribers_quantity, 0),
+          max(tickets_count - subscribers_quantity, 0),
+        }
+      true -> {performance.capacity, tickets_count}
+    end
+
     %StatisticsData{
       label: performance.production.title <> " " <> Bezirke.DateTime.format_datetime(performance.played_at),
       sales_figures: performance.sales_figures,
-      capacity: performance.capacity,
-      tickets_count: tickets_count
+      capacity: capacity,
+      tickets_count: tickets_count,
+      subscribers_quantity: subscribers_quantity
     }
   end
 end

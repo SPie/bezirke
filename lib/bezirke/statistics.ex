@@ -8,9 +8,9 @@ defmodule Bezirke.Statistics do
   alias Bezirke.Events.Event
   alias Bezirke.Sales.SalesFigures
 
-  def build_chart([], _), do: {[], [], []}
+  def build_chart([], _, _), do: {[], [], []}
 
-  def build_chart(data, use_percent) do
+  def build_chart(data, use_percent, with_subscriber?) do
     dates = get_start_and_end_date(data)
 
     labels =
@@ -20,7 +20,7 @@ defmodule Bezirke.Statistics do
 
     events = get_events_for_chart(dates)
 
-    datasets = build_datasets(labels, data, use_percent)
+    datasets = build_datasets(labels, data, use_percent, with_subscriber?)
 
     {labels, datasets, events}
   end
@@ -57,16 +57,28 @@ defmodule Bezirke.Statistics do
     end
   end
 
-  defp build_datasets(labels, data, use_percent) do
+  defp build_datasets(labels, data, use_percent, with_subscriber?) do
     data
-    |> Enum.map(fn %StatisticsData{label: label, sales_figures: sales_figures, capacity: capacity} ->
+    |> Enum.map(fn %StatisticsData{
+      label: label,
+      sales_figures: sales_figures,
+      capacity: capacity,
+      subscribers_quantity: subscribers_quantity
+    } ->
       dataset =
         sales_figures
         |> Enum.sort_by(&(&1.record_date), DateTime)
         |> do_build_dataset(labels, [])
         |> Enum.reverse()
+        |> Enum.map(fn tickets_count ->
+          if with_subscriber? == false || with_subscriber? == "false" do
+            max(tickets_count - subscribers_quantity, 0)
+          else
+            tickets_count
+          end
+        end)
 
-      dataset = if use_percent == "true" do
+      dataset = if use_percent == "true" || use_percent == true do
         dataset
         |> Enum.map(fn tickets_count -> (tickets_count / capacity * 100) end)
       else
