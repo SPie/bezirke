@@ -9,6 +9,7 @@ defmodule Bezirke.Tour do
   alias Bezirke.Tour.Season
   alias Bezirke.Tour.Production
   alias Bezirke.Tour.Performance
+  alias Bezirke.Tour.Subscriber
   alias Bezirke.Venues
   alias Bezirke.Venues.Venue
 
@@ -408,6 +409,57 @@ defmodule Bezirke.Tour do
     |> case do
       nil -> List.first(seasons)
       active_season -> active_season
+    end
+  end
+
+  def get_subscriber_by_uuid!(uuid) do
+    Subscriber
+    |> Repo.get_by!(uuid: uuid)
+    |> Repo.preload([:venue, :season])
+  end
+
+  def get_subscriber_for_venue_and_season(
+    %Venue{id: venue_id},
+    %Season{id: season_id}
+  ) do
+    from(
+      sub in Subscriber,
+      where: sub.venue_id == ^venue_id,
+      where: sub.season_id == ^season_id
+    )
+    |> Repo.one()
+  end
+
+  def create_subscriber(venue, season, attrs \\ %{}) do
+    %Subscriber{
+      uuid: Repo.generate_uuid(),
+      venue: venue,
+      season: season
+    }
+    |> Subscriber.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def update_subscriber(subscriber, attrs \\ %{}) do
+    subscriber
+    |> Subscriber.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def change_subscriber(%Subscriber{} = subscriber, attrs \\ %{}) do
+    Subscriber.changeset(subscriber, attrs)
+  end
+
+  def get_total_subscribers_for_season(%Season{id: season_id}) do
+    from(
+      sub in Subscriber,
+      select: sum(sub.quantity),
+      where: sub.season_id == ^season_id
+    )
+    |> Repo.one()
+    |> case do
+      nil -> 0
+      quantity -> quantity
     end
   end
 end

@@ -4,7 +4,6 @@ defmodule BezirkeWeb.PerformanceController do
   alias Bezirke.Sales
   alias Bezirke.Tour
   alias Bezirke.Tour.Performance
-  alias Bezirke.Venues
 
   def new(conn, %{"production_uuid" => production_uuid}) do
     changeset = Tour.change_performance(%Performance{})

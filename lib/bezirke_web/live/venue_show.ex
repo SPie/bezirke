@@ -12,6 +12,8 @@ defmodule BezirkeWeb.VenueShow do
     seasons = Tour.list_seasons()
     active_season = Tour.get_active_season(seasons)
 
+    subscriber = Tour.get_subscriber_for_venue_and_season(venue, active_season)
+
     performances =
       venue
       |> Tour.get_performances_for_venue_and_season(active_season)
@@ -23,6 +25,7 @@ defmodule BezirkeWeb.VenueShow do
           venue: venue,
           seasons: get_seasons_options(seasons),
           season_value: active_season.uuid,
+          subscriber: subscriber,
           performances: performances
         )
 
@@ -32,26 +35,40 @@ defmodule BezirkeWeb.VenueShow do
   def render(assigns) do
     ~H"""
       <.header>
-        Venue <%= @venue.id %>
+        Venue <%= @venue.name %>
         <:subtitle>This is a venue record from your database.</:subtitle>
         <:actions>
-          <.link href={~p"/venues/#{@venue}/edit"}>
+          <.link navigate={~p"/venues/#{@venue}/edit"}>
             <.button>Edit venue</.button>
           </.link>
         </:actions>
       </.header>
 
       <.list>
-        <:item title="Name"><%= @venue.name %></:item>
         <:item title="Description"><%= @venue.description %></:item>
         <:item title="Capacity"><%= @venue.capacity %></:item>
       </.list>
 
-      <h2 class="pt-14">Performances</h2>
-
       <.form for={%{}} phx-change="select_season">
         <.input id="season" name="season" label="Season" type="select" options={@seasons} value={@season_value} />
       </.form>
+
+      <.list>
+        <:item title="Subscribers">
+          <%= if @subscriber do %>
+            <%= @subscriber.quantity %>
+            <.link navigate={~p"/subscribers/#{@subscriber}/edit"}>
+              <.button>Edit</.button>
+            </.link>
+          <% else %>
+            <.link navigate={~p"/venues/#{@venue}/seasons/#{@season_value}/subscribers/new"}>
+              <.button>Add Subscribers</.button>
+            </.link>
+          <% end %>
+        </:item>
+      </.list>
+
+      <h2 class="pt-14">Performances</h2>
 
       <ul class="mt-2">
         <li
@@ -77,6 +94,8 @@ defmodule BezirkeWeb.VenueShow do
   def handle_event("select_season", %{"season" => season_uuid}, %{assigns: %{venue: venue}} = socket) do
     season = Tour.get_season_by_uuid!(season_uuid)
 
+    subscriber = Tour.get_subscriber_for_venue_and_season(venue, season)
+
     performances =
       venue
       |> Tour.get_performances_for_venue_and_season(season)
@@ -86,6 +105,7 @@ defmodule BezirkeWeb.VenueShow do
       socket
         |> assign(
           season_value: season_uuid,
+          subscriber: subscriber,
           performances: performances
         )
 

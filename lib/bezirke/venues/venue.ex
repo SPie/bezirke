@@ -9,6 +9,7 @@ defmodule Bezirke.Venues.Venue do
     field :uuid, Ecto.UUID
 
     has_many :performances, Bezirke.Tour.Performance
+    has_many :subscribers, Bezirke.Tour.Subscriber
 
     timestamps(type: :utc_datetime)
   end

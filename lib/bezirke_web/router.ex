@@ -72,6 +72,11 @@ defmodule BezirkeWeb.Router do
     resources "/venues", VenueController, param: "uuid", except: [:show]
     live "/venues/:uuid", VenueShow
 
+    get "/venues/:venue_uuid/seasons/:season_uuid/subscribers/new", SubscriberController, :new
+    post "/venues/:venue_uuid/seasons/:season_uuid/subscribers", SubscriberController, :create
+    get "/subscribers/:uuid/edit", SubscriberController, :edit
+    put "/subscribers/:uuid", SubscriberController, :update
+
     live "/", ProductionSalesStatistics
     live "/statistics/performances", PerformanceSalesStatistics
     live "/statistics/venues", VenueSalesStatistics

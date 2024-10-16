@@ -8,6 +8,7 @@ defmodule Bezirke.Tour.Season do
     field :uuid, Ecto.UUID
 
     has_many :productions, Bezirke.Tour.Production
+    has_many :subscribers, Bezirke.Tour.Subscriber
 
     timestamps(type: :utc_datetime)
   end

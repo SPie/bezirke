@@ -3,13 +3,14 @@ defmodule Bezirke.Statistics do
   The Statistics context.
   """
 
+  alias Bezirke.Statistics.StatisticsData
   alias Bezirke.Events
   alias Bezirke.Events.Event
   alias Bezirke.Sales.SalesFigures
 
-  def build_chart([], _), do: {[], [], []}
+  def build_chart([], _, _), do: {[], [], []}
 
-  def build_chart(data, use_percent) do
+  def build_chart(data, use_percent, with_subscriber?) do
     dates = get_start_and_end_date(data)
 
     labels =
@@ -19,7 +20,7 @@ defmodule Bezirke.Statistics do
 
     events = get_events_for_chart(dates)
 
-    datasets = build_datasets(labels, data, use_percent)
+    datasets = build_datasets(labels, data, use_percent, with_subscriber?)
 
     {labels, datasets, events}
   end
@@ -29,7 +30,7 @@ defmodule Bezirke.Statistics do
   defp get_start_and_end_date(data) do
     dates =
       data
-      |> Enum.flat_map(fn {_, sales_figures, _} ->
+      |> Enum.flat_map(fn %StatisticsData{sales_figures: sales_figures} ->
         Enum.map(sales_figures, &(DateTime.to_date(&1.record_date)))
       end)
       |> Enum.sort_by(&(&1), Date)
@@ -56,16 +57,28 @@ defmodule Bezirke.Statistics do
     end
   end
 
-  defp build_datasets(labels, data, use_percent) do
+  defp build_datasets(labels, data, use_percent, with_subscriber?) do
     data
-    |> Enum.map(fn {label, sales_figures, capacity} ->
+    |> Enum.map(fn %StatisticsData{
+      label: label,
+      sales_figures: sales_figures,
+      capacity: capacity,
+      subscribers_quantity: subscribers_quantity
+    } ->
       dataset =
         sales_figures
         |> Enum.sort_by(&(&1.record_date), DateTime)
         |> do_build_dataset(labels, [])
         |> Enum.reverse()
+        |> Enum.map(fn tickets_count ->
+          if with_subscriber? == false || with_subscriber? == "false" do
+            max(tickets_count - subscribers_quantity, 0)
+          else
+            tickets_count
+          end
+        end)
 
-      dataset = if use_percent == "true" do
+      dataset = if use_percent == "true" || use_percent == true do
         dataset
         |> Enum.map(fn tickets_count -> (tickets_count / capacity * 100) end)
       else

@@ -1,0 +1,8 @@
+<.header>
+  Edit Subscribers
+  <:subtitle><%= @subscriber.venue.name %> - <%= @subscriber.season.name %></:subtitle>
+</.header>
+
+<.subscriber_form changeset={@changeset} action={~p"/subscribers/#{@subscriber}"} />
+
+<.back navigate={~p"/venues/#{@subscriber.venue}?season=#{@subscriber.season}"}>Back to Venue</.back>
