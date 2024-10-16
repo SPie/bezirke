@@ -35,15 +35,17 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
           data-datasets={Jason.encode!(@datasets)}
         />
         <div>
-          <%= for %StatisticsData{label: performance, capacity: capacity, tickets_count: tickets_count} <- @performance_statisctics do %>
+          <%= for %StatisticsData{
+            label: performance,
+            capacity: capacity,
+            tickets_count: tickets_count,
+            subscribers_quantity: subscribers_quantity
+          } <- @performance_statisctics do %>
             <div>
               <h2><%= performance %></h2>
               <p>
-                <%= tickets_count %> / <%= capacity %>
-                (<%=  tickets_count / capacity * 100
-                  |> Decimal.from_float()
-                  |> Decimal.round(2)
-                %> %)
+                <%= tickets_count %>(<%= subscribers_quantity %>) / <%= capacity %>
+                (<%=  tickets_count / capacity * 100 |> Decimal.from_float() |> Decimal.round(2) %> %)
               </p>
             </div>
           <% end %>
@@ -200,21 +202,18 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         end
       )
 
-    {capacity, tickets_count} = cond do
+    tickets_count = cond do
       with_subscribers? == false || with_subscribers? == "false" ->
-        {
-          max(performance.capacity - subscribers_quantity, 0),
-          max(tickets_count - subscribers_quantity, 0),
-        }
-      true -> {performance.capacity, tickets_count}
+        max(tickets_count - subscribers_quantity, 0)
+      true -> tickets_count
     end
 
     %StatisticsData{
       label: performance.venue.name <> " " <> Bezirke.DateTime.format_datetime(performance.played_at),
       sales_figures: performance.sales_figures,
-      capacity: capacity,
+      capacity: performance.capacity,
       tickets_count: tickets_count,
-      subscribers_quantity: 0
+      subscribers_quantity: subscribers_quantity
     }
   end
 end
