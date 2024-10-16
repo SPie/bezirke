@@ -13,6 +13,7 @@ services:
       BASIC_AUTH_USERNAME: ${BASIC_AUTH_USERNAME}
       BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD}
       PHX_HOST: ${PHX_HOST}
+      VERSION_TAG: ${VERSION_TAG}
     ports:
       - 4000:4000
     depends_on:

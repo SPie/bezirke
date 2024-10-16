@@ -123,4 +123,4 @@ end
 
 # version tag
 config :bezirke, :version_tag,
-  System.get_env("VERSION_TAG", "0.7.2")
+  System.get_env("VERSION_TAG", "dev")
