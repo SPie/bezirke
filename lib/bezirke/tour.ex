@@ -286,6 +286,12 @@ defmodule Bezirke.Tour do
     Repo.delete(performance)
   end
 
+  def cancel_performance(%Performance{} = performance) do
+    performance
+    |> Performance.cancel(%{"cancelled_at" => DateTime.utc_now()})
+    |> Repo.update()
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking performance changes.
 

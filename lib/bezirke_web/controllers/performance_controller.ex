@@ -78,5 +78,24 @@ defmodule BezirkeWeb.PerformanceController do
 
   def delete(conn, %{"uuid" => _} = params), do: delete(conn, add_origin(params))
 
+  def cancel(conn, %{"uuid" => uuid, "origin" => origin}) do
+    performance = Tour.get_performance_by_uuid!(uuid)
+
+    case Tour.cancel_performance(performance) do
+      {:ok, performance} ->
+        conn
+        |> put_flash(:info, "Performance cancelled successfully.")
+        |> redirect(to: ~p"/performances/#{performance}?origin=#{origin}")
+      {:error, changeset} ->
+        changeset |> IO.inspect()
+
+        conn
+        |> put_flash(:error, "Performance could not be cancelled!")
+        |> redirect(to: ~p"/performances/#{performance}?origin=#{origin}")
+    end
+  end
+
+  def cancel(conn, params), do: cancel(conn, add_origin(params))
+
   defp add_origin(params), do: Map.put(params, "origin", "production")
 end

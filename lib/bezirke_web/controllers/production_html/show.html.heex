@@ -38,8 +38,8 @@
     phx-click={JS.navigate(~p"/performances/#{performance}?origin=production")}
     class="flex gap-4 py-4 text-sm leading-6 sm:gap-8 hover:cursor-pointer"
   >
-    <dt class="w-1/4 flex-none text-zinc-500"><%= performance.venue.name %></dt>
-    <dd class="text-zinc-700"><.datetime value={performance.played_at} /></dd>
+    <dt class={["w-1/4", "flex-none", "text-zinc-500", performance.cancelled_at && "line-through"]}><%= performance.venue.name %></dt>
+    <dd class={["text-zinc-700", performance.cancelled_at && "line-through"]}><.datetime value={performance.played_at} /></dd>
   </li>
 </ul>
 

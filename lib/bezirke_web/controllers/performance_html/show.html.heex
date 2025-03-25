@@ -1,12 +1,20 @@
 <.header>
-  Performance <%= @performance.venue.name %> <.datetime value={@performance.played_at} />
+  <span class={[@performance.cancelled_at && "line-through"]}>Performance <%= @performance.venue.name %> <.datetime value={@performance.played_at} /></span>
   <:actions>
     <.link href={~p"/performances/#{@performance}/edit?origin=#{@origin}"}>
       <.button>Edit performance</.button>
     </.link>
-    <.link href={~p"/performances/#{@performance}?origin=#{@origin}"} method="delete" data-confirm="Are you sure?">
-      <.button>Delete performance</.button>
-    </.link>
+    <%= cond do %>
+      <% Enum.empty?(@sales_figures) -> %>
+        <.link href={~p"/performances/#{@performance}?origin=#{@origin}"} method="delete" data-confirm="Are you sure?">
+          <.button>Delete performance</.button>
+        </.link>
+      <% !@performance.cancelled_at -> %>
+        <.link href={~p"/performances/#{@performance}/cancel?origin=#{@origin}"} method="post" data-confirm="Are you sure?">
+          <.button>Cancel performance</.button>
+        </.link>
+      <% true -> %>
+    <% end %>
   </:actions>
 </.header>
 
