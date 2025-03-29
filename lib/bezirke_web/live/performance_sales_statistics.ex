@@ -177,6 +177,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
     performance_statisctics =
       production
       |> Tour.get_performances_for_production_with_sales_figures()
+      |> Enum.filter(fn performance -> is_nil(performance.cancelled_at) end)
       |> Enum.map(fn performance -> get_performance_statistics(performance, production, with_subscribers?) end)
       |> Enum.filter(fn %StatisticsData{sales_figures: sales_figures} -> !Enum.empty?(sales_figures) end)
 

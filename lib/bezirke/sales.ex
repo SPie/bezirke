@@ -242,6 +242,7 @@ defmodule Bezirke.Sales do
       join: pf in assoc(s, :performance),
       join: p in assoc(pf, :production),
       where: p.id == ^production_id,
+      where: is_nil(pf.cancelled_at),
       order_by: s.record_date
     )
     |> Repo.all()
