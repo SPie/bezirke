@@ -76,8 +76,8 @@ defmodule BezirkeWeb.VenueShow do
           phx-click={JS.navigate(~p"/performances/#{performance}?origin=venue")}
           class="flex gap-4 py-4 text-sm leading-6 sm:gap-8 hover:cursor-pointer"
         >
-          <dt class="w-1/4 flex-none text-zinc-500"><%= performance.production.title %></dt>
-          <dd class="text-zinc-700"><%= performance.played_at %></dd>
+          <dt class={["w-1/4 flex-none text-zinc-500", performance.cancelled_at && "line-through"]}><%= performance.production.title %></dt>
+          <dd class={["text-zinc-700", performance.cancelled_at && "line-through"]}><%= performance.played_at %></dd>
         </li>
       </ul>
 

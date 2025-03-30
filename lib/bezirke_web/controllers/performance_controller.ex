@@ -86,9 +86,7 @@ defmodule BezirkeWeb.PerformanceController do
         conn
         |> put_flash(:info, "Performance cancelled successfully.")
         |> redirect(to: ~p"/performances/#{performance}?origin=#{origin}")
-      {:error, changeset} ->
-        changeset |> IO.inspect()
-
+      {:error, _} ->
         conn
         |> put_flash(:error, "Performance could not be cancelled!")
         |> redirect(to: ~p"/performances/#{performance}?origin=#{origin}")
@@ -96,6 +94,23 @@ defmodule BezirkeWeb.PerformanceController do
   end
 
   def cancel(conn, params), do: cancel(conn, add_origin(params))
+
+  def uncancel(conn, %{"uuid" => uuid, "origin" => origin}) do
+    performance = Tour.get_performance_by_uuid!(uuid)
+
+    case Tour.uncancel_performance(performance) do
+      {:ok, performance} ->
+        conn
+        |> put_flash(:info, "Performance un-cancelled successfully.")
+        |> redirect(to: ~p"/performances/#{performance}?origin=#{origin}")
+      {:error, _} ->
+        conn
+        |> put_flash(:error, "Performance could not be un-cancelled!")
+        |> redirect(to: ~p"/performances/#{performance}?origin=#{origin}")
+    end
+  end
+
+  def uncancel(conn, params), do: uncancel(conn, add_origin(params))
 
   defp add_origin(params), do: Map.put(params, "origin", "production")
 end

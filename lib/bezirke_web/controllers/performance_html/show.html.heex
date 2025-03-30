@@ -13,6 +13,10 @@
         <.link href={~p"/performances/#{@performance}/cancel?origin=#{@origin}"} method="post" data-confirm="Are you sure?">
           <.button>Cancel performance</.button>
         </.link>
+      <% @performance.cancelled_at -> %>
+        <.link href={~p"/performances/#{@performance}/uncancel?origin=#{@origin}"} method="post" data-confirm="Are you sure?">
+          <.button>Uncancel performance</.button>
+        </.link>
       <% true -> %>
     <% end %>
   </:actions>
@@ -21,7 +25,7 @@
 <.list>
   <:item title="Played at"><.datetime value={@performance.played_at} /></:item>
 
-  <:item title="Procution"><%= @performance.production.title %></:item>
+  <:item title="Production"><%= @performance.production.title %></:item>
   <:item title="Venue"><%= @performance.venue.name %></:item>
 </.list>
 

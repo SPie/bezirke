@@ -71,7 +71,6 @@ defmodule Bezirke.Tour.Performance do
   def cancel(performance, attrs) do
     performance
     |> cast(attrs, [:cancelled_at])
-    |> validate_required([:cancelled_at])
   end
 end
 
