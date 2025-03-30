@@ -132,7 +132,8 @@ defmodule Bezirke.Tour do
       p in Production,
       join: pf in assoc(p, :performances),
       select: sum(pf.capacity),
-      where: p.id == ^id
+      where: p.id == ^id,
+      where: is_nil(pf.cancelled_at)
     )
     |> Repo.one()
     |> case do
