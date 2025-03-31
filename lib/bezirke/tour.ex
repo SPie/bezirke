@@ -132,7 +132,8 @@ defmodule Bezirke.Tour do
       p in Production,
       join: pf in assoc(p, :performances),
       select: sum(pf.capacity),
-      where: p.id == ^id
+      where: p.id == ^id,
+      where: is_nil(pf.cancelled_at)
     )
     |> Repo.one()
     |> case do
@@ -284,6 +285,18 @@ defmodule Bezirke.Tour do
   """
   def delete_performance(%Performance{} = performance) do
     Repo.delete(performance)
+  end
+
+  def cancel_performance(%Performance{} = performance) do
+    performance
+    |> Performance.cancel(%{"cancelled_at" => DateTime.utc_now()})
+    |> Repo.update()
+  end
+
+  def uncancel_performance(%Performance{} = performance) do
+    performance
+    |> Performance.cancel(%{"cancelled_at" => nil})
+    |> Repo.update()
   end
 
   @doc """

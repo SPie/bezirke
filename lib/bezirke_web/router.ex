@@ -57,6 +57,8 @@ defmodule BezirkeWeb.Router do
     get "/performances/:uuid/edit", PerformanceController, :edit
     put "/performances/:uuid", PerformanceController, :update
     delete "/performances/:uuid", PerformanceController, :delete
+    post "/performances/:uuid/cancel", PerformanceController, :cancel
+    post "/performances/:uuid/uncancel", PerformanceController, :uncancel
 
     get "/sales-figures/:uuid", SalesFiguresController, :show
     get "/productions/:production_uuid/sales-figures/new", SalesFiguresController, :new

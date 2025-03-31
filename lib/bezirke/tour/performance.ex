@@ -9,6 +9,7 @@ defmodule Bezirke.Tour.Performance do
     field :uuid, Ecto.UUID
     field :played_at, :utc_datetime
     field :capacity, :integer
+    field :cancelled_at, :utc_datetime
 
     belongs_to :production, Bezirke.Tour.Production
     belongs_to :venue, Bezirke.Venues.Venue
@@ -65,6 +66,11 @@ defmodule Bezirke.Tour.Performance do
     else
       put_change(changeset, :played_at, DateTime.new!(played_at_date, played_at_time))
     end
+  end
+
+  def cancel(performance, attrs) do
+    performance
+    |> cast(attrs, [:cancelled_at])
   end
 end
 

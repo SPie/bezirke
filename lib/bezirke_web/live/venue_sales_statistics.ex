@@ -188,6 +188,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
     performance_statistics =
       venue
       |> Tour.get_performances_for_venue_and_season_with_sales_figures(season)
+      |> Enum.filter(fn performance -> is_nil(performance.cancelled_at) end)
       |> Enum.map(fn performance -> get_performance_statistics(performance, subscribers_quantity, with_subscribers?) end)
       |> Enum.filter(fn %StatisticsData{sales_figures: sales_figures} -> !Enum.empty?(sales_figures) end)
 
