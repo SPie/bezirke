@@ -3,10 +3,24 @@ defmodule Bezirke.Statistics do
   The Statistics context.
   """
 
+  alias Bezirke.Statistics.Dataset
+  alias Bezirke.Statistics.TicketsCount
   alias Bezirke.Statistics.StatisticsData
   alias Bezirke.Events
   alias Bezirke.Events.Event
   alias Bezirke.Sales.SalesFigures
+
+  def build_sales_chart([], _, _), do: {[], []}
+
+  def build_sales_chart(data, use_percent?, with_subscriber?) do
+    dates = get_start_and_end_date(data)
+
+    events = get_events_for_chart(dates)
+
+    datasets = build_sales_dataset(data, use_percent?, with_subscriber?)
+
+    {datasets, events}
+  end
 
   def build_chart([], _, _), do: {[], [], []}
 
@@ -21,6 +35,8 @@ defmodule Bezirke.Statistics do
     events = get_events_for_chart(dates)
 
     datasets = build_datasets(labels, data, use_percent, with_subscriber?)
+
+    build_sales_dataset(data, use_percent, with_subscriber?)
 
     {labels, datasets, events}
   end
@@ -54,6 +70,45 @@ defmodule Bezirke.Statistics do
     case Date.compare(current_date, end_date) do
       :eq -> [current_date | labels]
       _ -> build_labels({Date.add(current_date, 1), end_date}, [current_date | labels])
+    end
+  end
+
+  defp build_sales_dataset(data, use_percent?, with_subscriber?) do
+    data
+    |> Enum.map(fn %StatisticsData{
+      label: label,
+      sales_figures: sales_figures,
+      capacity: capacity,
+      subscribers_quantity: subscribers_quantity
+    } ->
+      ticket_counts =
+        sales_figures
+        |> Enum.sort_by(&(&1.record_date), {:asc, DateTime})
+        |> add_up_ticket_counts([])
+        |> Enum.reverse()
+
+      %Dataset{label: label, ticket_counts: ticket_counts}
+    end)
+  end
+
+  defp add_up_ticket_counts([], ticket_counts), do: ticket_counts
+
+  defp add_up_ticket_counts(
+    [%SalesFigures{record_date: record_date, tickets_count: tickets_count} | next_sales_figures],
+    []
+  ) do
+    add_up_ticket_counts(next_sales_figures, [%TicketsCount{date: DateTime.to_date(record_date), tickets_count: tickets_count}])
+  end
+
+  defp add_up_ticket_counts(
+    [%SalesFigures{record_date: record_date, tickets_count: tickets_count} | next_sales_figures],
+    [%TicketsCount{date: current_date, tickets_count: current_tickets_count} | prev_ticket_counts] = ticket_counts
+  ) do
+    record_date = DateTime.to_date(record_date)
+
+    case Date.compare(record_date, current_date) do
+      :eq -> add_up_ticket_counts(next_sales_figures, [%TicketsCount{date: current_date, tickets_count: current_tickets_count + tickets_count} | prev_ticket_counts])
+      _ -> add_up_ticket_counts(next_sales_figures, [%TicketsCount{date: record_date, tickets_count: current_tickets_count + tickets_count} | ticket_counts])
     end
   end
 

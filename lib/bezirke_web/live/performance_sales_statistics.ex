@@ -27,13 +27,13 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         />
       </.form>
       <div>
-        <canvas
+        <div
           id="production-sales"
-          height="200"
-          phx-hook="ChartJS"
-          data-labels={Jason.encode!(@labels)}
+          phx-hook="Chart"
+          phx-update="ignore"
+          class="w-full h-[40rem]"
           data-datasets={Jason.encode!(@datasets)}
-        />
+        ></div>
         <div>
           <%= for %StatisticsData{
             label: performance,
@@ -63,7 +63,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
 
     active_production = List.first(productions)
 
-    {performance_statisctics, labels, datasets, events} = get_view_data(active_production, false, true)
+    {performance_statisctics, datasets, events} = get_view_data(active_production, false, true)
 
     socket =
       socket
@@ -73,7 +73,6 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         season_value: active_season.uuid,
         production_value: if active_production do active_production.uuid end,
         performance_statisctics: performance_statisctics,
-        labels: labels,
         datasets: datasets,
         event_options: get_event_options(events, []),
         use_percent: false,
@@ -106,7 +105,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         production -> production
       end
 
-    {performance_statisctics, labels, datasets, events} = get_view_data(active_production, use_percent, with_subscribers?)
+    {performance_statisctics, datasets, events} = get_view_data(active_production, use_percent, with_subscribers?)
 
     event_selection = get_event_selection(params)
 
@@ -119,7 +118,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         with_subscribers: with_subscribers? == true || with_subscribers? == "true",
         performance_statisctics: performance_statisctics
       )
-      |> update_chart(labels, datasets, events, use_percent, event_selection)
+      |> update_chart(datasets, events, use_percent, event_selection)
       |> update_chart_events(events, event_selection)
 
     {:noreply, socket}
@@ -147,7 +146,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         production -> production
       end
 
-    {performance_statisctics, labels, datasets, events} = get_view_data(active_production, use_percent, with_subscribers?)
+    {performance_statisctics, datasets, events} = get_view_data(active_production, use_percent, with_subscribers?)
 
     socket =
       socket
@@ -158,7 +157,7 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         with_subscribers: with_subscribers? == true || with_subscribers? == "true",
         performance_statisctics: performance_statisctics
       )
-      |> update_chart(labels, datasets, events, use_percent, [])
+      |> update_chart(datasets, events, use_percent, [])
 
     {:noreply, socket}
   end
@@ -181,11 +180,11 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
       |> Enum.map(fn performance -> get_performance_statistics(performance, production, with_subscribers?) end)
       |> Enum.filter(fn %StatisticsData{sales_figures: sales_figures} -> !Enum.empty?(sales_figures) end)
 
-    {labels, datasets, events} =
+    {datasets, events} =
       performance_statisctics
-      |> Statistics.build_chart(use_percent, with_subscribers?)
+      |> Statistics.build_sales_chart(use_percent, with_subscribers?)
 
-    {performance_statisctics, labels, datasets, events}
+    {performance_statisctics, datasets, events}
   end
 
   defp get_performance_statistics(performance, production, with_subscribers?) do

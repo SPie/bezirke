@@ -29,13 +29,13 @@ defmodule BezirkeWeb.VenueSalesStatistics do
       </.form>
 
       <div>
-        <canvas
+        <div
           id="production-sales"
-          height="200"
-          phx-hook="ChartJS"
-          data-labels={Jason.encode!(@labels)}
+          phx-hook="Chart"
+          phx-update="ignore"
+          class="w-full h-[40rem]"
           data-datasets={Jason.encode!(@datasets)}
-        />
+        ></div>
         <div>
           <%= for %StatisticsData{
             label: performance_title,
@@ -68,7 +68,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
     venues = Venues.get_venues_for_season(active_season)
     active_venue = venues |> List.first()
 
-    {performance_statistics, labels, datasets, events} =
+    {performance_statistics, datasets, events} =
       venues
       |> List.first()
       |> get_view_data(active_season, false, true)
@@ -81,7 +81,6 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         season_value: active_season.uuid,
         venue_value: if active_venue do active_venue.uuid end,
         performance_statistics: performance_statistics,
-        labels: labels,
         datasets: datasets,
         event_options: get_event_options(events, []),
         use_percent: false,
@@ -106,7 +105,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
 
     venues = Venues.get_venues_for_season(active_season)
 
-    {performance_statistics, labels, datasets, events} =
+    {performance_statistics, datasets, events} =
       venues
       |> Enum.find(&(&1.uuid == venue_uuid))
       |> case do
@@ -126,7 +125,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         with_subscribers: with_subscribers? == true || with_subscribers? == "true",
         performance_statistics: performance_statistics
       )
-      |> update_chart(labels, datasets, events, use_percent, event_selection)
+      |> update_chart(datasets, events, use_percent, event_selection)
       |> update_chart_events(events, event_selection)
 
     {:noreply, socket}
@@ -146,7 +145,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
 
     venues = Venues.get_venues_for_season(active_season)
 
-    {performance_statistics, labels, datasets, events} =
+    {performance_statistics, datasets, events} =
       venues
       |> Enum.find(&(&1.uuid == venue_uuid))
       |> case do
@@ -164,7 +163,7 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         with_subscribers: with_subscribers? == true || with_subscribers? == "true",
         performance_statistics: performance_statistics
       )
-      |> update_chart(labels, datasets, events, use_percent, [])
+      |> update_chart(datasets, events, use_percent, [])
 
     {:noreply, socket}
   end
@@ -192,11 +191,11 @@ defmodule BezirkeWeb.VenueSalesStatistics do
       |> Enum.map(fn performance -> get_performance_statistics(performance, subscribers_quantity, with_subscribers?) end)
       |> Enum.filter(fn %StatisticsData{sales_figures: sales_figures} -> !Enum.empty?(sales_figures) end)
 
-    {labels, datasets, events} =
+    {datasets, events} =
       performance_statistics
-      |> Statistics.build_chart(use_percent, with_subscribers?)
+      |> Statistics.build_sales_chart(use_percent, with_subscribers?)
 
-    {performance_statistics, labels, datasets, events}
+    {performance_statistics, datasets, events}
   end
 
   defp get_performance_statistics(performance, subscribers_quantity, with_subscribers?) do

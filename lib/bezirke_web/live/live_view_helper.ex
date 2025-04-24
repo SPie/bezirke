@@ -47,17 +47,15 @@ alias Bezirke.Events
 
   def get_event_selection(_), do: []
 
-  def update_chart(socket, labels, datasets, events, use_percent, event_selection) do
+  def update_chart(socket, datasets, events, use_percent, event_selection) do
     socket
     |> assign(
-      labels: labels,
       datasets: datasets,
-      labels: labels,
       datasets: datasets,
       use_percent: use_percent == "true",
       event_options: get_event_options(events, event_selection)
     )
-    |> push_event("update-chart", %{data: %{labels: labels, datasets: datasets}})
+    |> push_event("update-chart", %{data: %{datasets: datasets}})
   end
 
   def update_chart_events(socket, events, event_selection) do

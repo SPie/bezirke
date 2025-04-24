@@ -27,13 +27,14 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       </.form>
 
       <div>
-        <canvas
+
+        <div
           id="production-sales"
-          height="200"
-          phx-hook="ChartJS"
-          data-labels={Jason.encode!(@labels)}
+          phx-hook="Chart"
+          phx-update="ignore"
+          class="w-full h-[40rem]"
           data-datasets={Jason.encode!(@datasets)}
-        />
+        ></div>
         <div>
           <%= for %StatisticsData{
             label: production_title,
@@ -63,7 +64,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       seasons
       |> Tour.get_active_season()
 
-    {production_statistics, labels, datasets, events} = get_view_data(active_season, false, true)
+    {production_statistics, datasets, events} = get_view_data(active_season, false, true)
 
     socket =
       socket
@@ -71,7 +72,6 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         season_value: active_season.uuid,
         seasons: get_seasons_options(seasons),
         productions_statistics: production_statistics,
-        labels: labels,
         datasets: datasets,
         event_options: get_event_options(events, []),
         use_percent: false,
@@ -91,7 +91,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
     } = params,
     socket
   ) do
-    {production_statistics, labels, datasets, events} =
+    {production_statistics, datasets, events} =
       season_uuid
       |> Tour.get_season_by_uuid!()
       |> get_view_data(use_percent?, with_subscribers?)
@@ -105,14 +105,14 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         with_subscribers: with_subscribers? == "true",
         production_statistics: production_statistics
       )
-      |> update_chart(labels, datasets, events, use_percent?, event_selection)
+      |> update_chart(datasets, events, use_percent?, event_selection)
       |> update_chart_events(events, event_selection)
 
     {:noreply, socket}
   end
 
   def handle_event("select_season", %{"season" => season_uuid, "use-percent" => use_percent?, "with-subscribers" => with_subscribers?}, socket) do
-    {production_statistics, labels, datasets, events} =
+    {production_statistics, datasets, events} =
       season_uuid
       |> Tour.get_season_by_uuid!()
       |> get_view_data(use_percent?, with_subscribers?)
@@ -124,7 +124,7 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
         with_subscribers: with_subscribers? == "true",
         productions_statistics: production_statistics
       )
-      |> update_chart(labels, datasets, events, use_percent?, [])
+      |> update_chart(datasets, events, use_percent?, [])
 
     {:noreply, socket}
   end
@@ -148,11 +148,11 @@ defmodule BezirkeWeb.ProductionSalesStatistics do
       end)
       |> Enum.filter(fn %StatisticsData{sales_figures: sales_figures} -> !Enum.empty?(sales_figures) end)
 
-    {labels, datasets, events} =
+    {datasets, events} =
       production_statistics
-      |> Statistics.build_chart(use_percent?, with_subscribers?)
+      |> Statistics.build_sales_chart(use_percent?, with_subscribers?)
 
-    {production_statistics, labels, datasets, events}
+    {production_statistics, datasets, events}
   end
 
   defp get_production_statistics(production, total_subscribers, with_subscribers?) do

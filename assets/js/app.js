@@ -21,82 +21,172 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
-
-import Chart from "chart.js/auto";
-import annotationPlugin from 'chartjs-plugin-annotation';
+import * as echarts from 'echarts'
 
 import hooks from './hooks';
 
 let format_date = (date) => (new Date(date)).toLocaleDateString('de-DE', {day: "2-digit", month: "2-digit", year: "numeric"});
 
-Chart.register(annotationPlugin);
-
-hooks.ChartJS = {
+hooks.Chart = {
   mounted() {
-    const ctx = this.el
+    this.chart = echarts.init(this.el)
 
-    const data = {
-      type: 'line',
-      data: {
-        labels: JSON.parse(this.el.dataset.labels).map((label) => format_date(label)),
-        datasets: JSON.parse(this.el.dataset.datasets),
-      },
-      options: {
-        plugins: {
-          annotation: {
-            annotations: []
-          }
-        }
-      }
+    function processTicketCounts(ticketCounts) {
+      return ticketCounts
+        .map(item => ([
+          new Date(item.date),
+          item.tickets_count,
+        ]))
     }
 
-    const chart = new Chart(ctx, data)
+    function processSeriesData(datasets) {
+      return datasets
+        .map(item => ({
+          name: item.label,
+          type: 'line',
+          showSymbol: true,
+          symbolSize: 6,
+          data: processTicketCounts(item.ticket_counts),
+          emphasis: {
+            focus: 'series',
+          },
+          lineStyle: {
+            width: 2,
+          },
+          // Add markers here markLine: commonMarkLine,
+          // markLine: commonMarkLine,
+          // markArea: commonMarkArea,
+        }))
+    }
+
+    function createOptions(datasets) {
+      const datasetsSeries = processSeriesData(datasets)
+
+      // Define the marker configurations once to avoid repetition inside the option
+      // const commonMarkLine = {
+      //   symbol: ['none', 'none'],
+      //   lineStyle: {
+      //     type: 'dashed',
+      //     color: '#e63946',
+      //   },
+      //   label: {
+      //     show: true,
+      //     position: 'end',
+      //     formatter: '{b}',
+      //   },
+      //   data: [
+      //     {
+      //       name: 'Test1',
+      //       xAxis: '2025-01-07',
+      //     },
+      //   ]
+      // };
+      // const commonMarkArea = {
+      //   label: {
+      //     show: true,
+      //     position: 'insideTop',
+      //     distance: 15,
+      //     color: '#333',
+      //     fontSize: 12,
+      //     formatter: '{b}',
+      //   },
+      //   data: [
+      //     [
+      //       {
+      //         name: 'Test2',
+      //         xAxis: '2025-02-10',
+      //         itemStyle: {
+      //           color: 'rgba(168, 218, 220, 0.4)',
+      //         },
+      //       },
+      //       {
+      //         xAxis: '2025-02-17',
+      //       },
+      //     ],
+      //     [
+      //       {
+      //         name: 'Test3',
+      //         xAxis: '2025-01-06',
+      //         itemStyle: {
+      //           color: 'rgba(255, 186, 84, 0.4)',
+      //         },
+      //       },
+      //       {
+      //         xAxis: '2025-01-11',
+      //       },
+      //     ],
+      //     [
+      //       {
+      //         name: 'Test4',
+      //         xAxis: '2025-02-06',
+      //         itemStyle: {
+      //           color: 'rgba(144, 221, 176, 0.4)',
+      //         },
+      //       },
+      //       {
+      //         xAxis: '2025-02-13',
+      //       },
+      //     ]
+      //   ]
+      // };
+      return {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } },
+          formatter: function (params) {
+            const actualSeriesParams = params;
+
+            if (!actualSeriesParams.length) return null;
+
+            const point = actualSeriesParams[0];
+
+            const date = new Date(point.value[0]);
+
+            const formattedDate = `${('0' + date.getDate()).slice(-2)}.${('0' + (date.getMonth() + 1))
+                .slice(-2)}.${date.getFullYear()}`;
+            let tooltipHtml = formattedDate; actualSeriesParams.forEach(p => {
+              tooltipHtml += `<br/>${p.marker}${p.seriesName}: <strong>${p.value[1]}</strong>`;
+            });
+            return tooltipHtml;
+          },
+        },
+        legend: {
+          top: 'top',
+        },
+        grid: {
+          left: '1%',
+          right: '1%',
+          bottom: '7%',
+          containLabel: true,
+        },
+        xAxis: {
+          type: 'time',
+          boundaryGap: false,
+        },
+        yAxis: {
+          type: 'value',
+          axisLabel: { formatter: '{value}' },
+        },
+        dataZoom: [
+          {
+            type: 'inside',
+            start: 0,
+            end: 100,
+          },
+        ],
+        series: datasetsSeries,
+      };
+    }
+
+    this.chart.setOption(createOptions(JSON.parse(this.el.dataset.datasets)));
 
     this.handleEvent('update-chart', (payload) => {
-      chart.data.labels = payload.data.labels.map((label) => format_date(label))
-      chart.data.datasets = payload.data.datasets
-      chart.options.plugins.annotation.annotations = []
-
-      chart.update()
+      this.chart.setOption(createOptions(payload.data.datasets), { notMerge: true })
     })
 
-    this.handleEvent('set-chart-events', (payload) => {
-      chart.options.plugins.annotation.annotations = payload.data.events
-        .map(event => {
-          if (event.ended_at) {
-            return {
-              type: 'box',
-              xMin: format_date(event.started_at),
-              xMax: format_date(event.ended_at),
-              borderColor: 'rgb(255, 99, 132)',
-              borderWitdht: 2,
-              backgroundColor: 'rgba(255, 99, 132, 0.25)',
-              label: {
-                content: event.label,
-                display: true,
-                position: 'start',
-                color: 'rgb(150, 150, 150)'
-              }
-            }
-          }
-
-          return {
-            type: 'line',
-            xMin: format_date(event.started_at),
-            xMax: format_date(event.started_at),
-            borderColor: 'rgb(255, 99, 132)',
-            borderWitdht: 2,
-            label: {
-              content: event.label,
-              display: true,
-              position: 'end',
-              backgroundColor: 'rgb(200, 200, 200)'
-            }
-          }
-        })
-
-      chart.update()
-    })
+    window.addEventListener('resize', () => {
+      this.chart.resize();
+    });
   }
 }
 
