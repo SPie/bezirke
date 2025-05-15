@@ -22,25 +22,6 @@ defmodule Bezirke.Statistics do
     {datasets, events}
   end
 
-  def build_chart([], _, _), do: {[], [], []}
-
-  def build_chart(data, use_percent, with_subscriber?) do
-    dates = get_start_and_end_date(data)
-
-    labels =
-      dates
-      |> build_labels([])
-      |> Enum.reverse()
-
-    events = get_events_for_chart(dates)
-
-    datasets = build_datasets(labels, data, use_percent, with_subscriber?)
-
-    build_sales_dataset(data, use_percent, with_subscriber?)
-
-    {labels, datasets, events}
-  end
-
   defp get_start_and_end_date([]), do: {}
 
   defp get_start_and_end_date(data) do
@@ -62,15 +43,6 @@ defmodule Bezirke.Statistics do
       |> Date.add(1)
 
     {start_date, end_date}
-  end
-
-  defp build_labels({}, _), do: []
-
-  defp build_labels({current_date, end_date}, labels) do
-    case Date.compare(current_date, end_date) do
-      :eq -> [current_date | labels]
-      _ -> build_labels({Date.add(current_date, 1), end_date}, [current_date | labels])
-    end
   end
 
   defp build_sales_dataset(data, use_percent?, with_subscriber?) do
@@ -205,17 +177,9 @@ defmodule Bezirke.Statistics do
     end
   end
 
-  def set_event_times_boundaries(events, []), do: events
+  def set_event_times_boundaries(events, nil, nil), do: events
 
-  def set_event_times_boundaries(events, dates) do
-    start_date =
-      dates
-      |> List.first()
-
-    end_date =
-      dates
-      |> List.last()
-
+  def set_event_times_boundaries(events, start_date, end_date) do
     events
     |> Enum.map(fn event ->
       event

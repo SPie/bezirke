@@ -309,4 +309,16 @@ defmodule Bezirke.Sales do
       [{current_sales_figure, tickets_count_sum} | sales_figures_with_tickets_count]
     )
   end
+
+  def get_sales_range_for_season(season_uuid) do
+    from(
+      s in SalesFigures,
+      join: pf in assoc(s, :performance),
+      join: p in assoc(pf, :production),
+      join: se in assoc(p, :season),
+      where: se.uuid == ^season_uuid,
+      select: {min(s.record_date), max(s.record_date)}
+    )
+    |> Repo.one!()
+  end
 end

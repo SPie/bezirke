@@ -2,6 +2,7 @@ defmodule BezirkeWeb.LiveViewHelper do
   import Phoenix.Component
   import Phoenix.LiveView
 
+alias Bezirke.Sales
 alias Bezirke.Events
   alias Bezirke.Events.Event
   alias Bezirke.Statistics
@@ -67,13 +68,15 @@ alias Bezirke.Events
     |> push_event("set-chart-events", %{data: %{events: selected_events}})
   end
 
-  def update_event_options(%Socket{assigns: %{labels: labels}} = socket, event_options) do
+  def update_event_options(%Socket{assigns: %{season_value: season_value}} = socket, event_options) do
+    {start_date, end_date} = Sales.get_sales_range_for_season(season_value)
+
     events =
       event_options
       |> Enum.filter(&(&1.selected))
       |> Enum.map(&(&1.id))
       |> Events.get_by_ids()
-      |> Statistics.set_event_times_boundaries(labels)
+      |> Statistics.set_event_times_boundaries(start_date, end_date)
 
     socket
     |> push_event("set-chart-events", %{data: %{events: events}})
