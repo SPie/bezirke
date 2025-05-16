@@ -35,7 +35,8 @@ const Chart = {
           type: 'axis',
         },
         legend: {
-          top: 'top',
+          bottom: 0,
+          type: 'scroll'
         },
         grid: {
           left: '1%',

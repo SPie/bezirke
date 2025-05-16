@@ -57,6 +57,20 @@ defmodule Bezirke.Statistics do
         sales_figures
         |> Enum.sort_by(&(&1.record_date), {:asc, DateTime})
         |> add_up_ticket_counts([])
+        |> Enum.map( fn %TicketsCount{tickets_count: count} = tickets_count ->
+          count = cond do
+            with_subscriber? == false || with_subscriber? == "false" ->
+              max(count - subscribers_quantity, 0)
+            true -> count
+          end
+
+          count = cond do
+            use_percent? == "true" || use_percent? == true -> count / capacity * 100
+            true -> count
+          end
+
+          %TicketsCount{tickets_count | tickets_count: count}
+        end)
         |> Enum.reverse()
 
       %Dataset{label: label, ticket_counts: ticket_counts}
