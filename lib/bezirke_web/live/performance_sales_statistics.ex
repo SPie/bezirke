@@ -19,21 +19,29 @@ defmodule BezirkeWeb.PerformanceSalesStatistics do
         <.input id="production" name="production" label="Production" type="select" options={@productions} value={@production_value} />
         <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} value="true" />
         <.input id="with-subscribers" name="with-subscribers" label="with subscribers" type="checkbox" checked={@with_subscribers} />
-        <MultiSelect.multi_select
-          id="chart-events-selection"
-          form={f}
-          options={@event_options}
-          on_change={fn opts -> send(self(), {:updated_options, opts}) end}
-        />
       </.form>
-      <div>
-        <div
-          id="production-sales"
-          phx-hook="Chart"
-          phx-update="ignore"
-          class="w-full h-[40rem]"
-          data-datasets={Jason.encode!(@datasets)}
-        ></div>
+
+      <div class="relative">
+        <div class="relative z-10">
+          <.form :let={f} for={%{}} phx-change="select_season">
+            <MultiSelect.multi_select
+              id="chart-events-selection"
+              form={f}
+              options={@event_options}
+              on_change={fn opts -> send(self(), {:updated_options, opts}) end}
+            />
+          </.form>
+        </div>
+
+        <div>
+          <div
+            id="production-sales"
+            phx-hook="Chart"
+            phx-update="ignore"
+            class="w-full h-[40rem]"
+            data-datasets={Jason.encode!(@datasets)}
+          ></div>
+        </div>
         <div>
           <%= for %StatisticsData{
             label: performance,

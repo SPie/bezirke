@@ -20,22 +20,30 @@ defmodule BezirkeWeb.VenueSalesStatistics do
         <.input id="venue" name="venue" label="Venue" type="select" options={@venues} value={@venue_value}/>
         <.input id="use-percent" name="use-percent" label="in percent" type="checkbox" checked={@use_percent} />
         <.input id="with-subscribers" name="with-subscribers" label="with subscribers" type="checkbox" checked={@with_subscribers} />
-        <MultiSelect.multi_select
-          id="chart-events-selection"
-          form={f}
-          options={@event_options}
-          on_change={fn opts -> send(self(), {:updated_options, opts}) end}
-        />
       </.form>
 
-      <div>
-        <div
-          id="production-sales"
-          phx-hook="Chart"
-          phx-update="ignore"
-          class="w-full h-[40rem]"
-          data-datasets={Jason.encode!(@datasets)}
-        ></div>
+      <div class="relative">
+        <div class="relative z-10">
+          <.form :let={f} for={%{}} phx-change="select_season">
+            <MultiSelect.multi_select
+              id="chart-events-selection"
+              form={f}
+              options={@event_options}
+              on_change={fn opts -> send(self(), {:updated_options, opts}) end}
+            />
+          </.form>
+        </div>
+
+        <div>
+          <div
+            id="production-sales"
+            phx-hook="Chart"
+            phx-update="ignore"
+            class="w-full h-[40rem]"
+            data-datasets={Jason.encode!(@datasets)}
+          ></div>
+
+        </div>
         <div>
           <%= for %StatisticsData{
             label: performance_title,
