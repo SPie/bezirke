@@ -3,26 +3,23 @@ defmodule Bezirke.Statistics do
   The Statistics context.
   """
 
+  alias Bezirke.Statistics.Dataset
+  alias Bezirke.Statistics.TicketsCount
   alias Bezirke.Statistics.StatisticsData
   alias Bezirke.Events
   alias Bezirke.Events.Event
   alias Bezirke.Sales.SalesFigures
 
-  def build_chart([], _, _), do: {[], [], []}
+  def build_sales_chart([], _, _), do: {[], []}
 
-  def build_chart(data, use_percent, with_subscriber?) do
+  def build_sales_chart(data, use_percent?, with_subscriber?) do
     dates = get_start_and_end_date(data)
-
-    labels =
-      dates
-      |> build_labels([])
-      |> Enum.reverse()
 
     events = get_events_for_chart(dates)
 
-    datasets = build_datasets(labels, data, use_percent, with_subscriber?)
+    datasets = build_sales_dataset(data, use_percent?, with_subscriber?)
 
-    {labels, datasets, events}
+    {datasets, events}
   end
 
   defp get_start_and_end_date([]), do: {}
@@ -48,16 +45,7 @@ defmodule Bezirke.Statistics do
     {start_date, end_date}
   end
 
-  defp build_labels({}, _), do: []
-
-  defp build_labels({current_date, end_date}, labels) do
-    case Date.compare(current_date, end_date) do
-      :eq -> [current_date | labels]
-      _ -> build_labels({Date.add(current_date, 1), end_date}, [current_date | labels])
-    end
-  end
-
-  defp build_datasets(labels, data, use_percent, with_subscriber?) do
+  defp build_sales_dataset(data, use_percent?, with_subscriber?) do
     data
     |> Enum.map(fn %StatisticsData{
       label: label,
@@ -65,61 +53,48 @@ defmodule Bezirke.Statistics do
       capacity: capacity,
       subscribers_quantity: subscribers_quantity
     } ->
-      dataset =
+      ticket_counts =
         sales_figures
-        |> Enum.sort_by(&(&1.record_date), DateTime)
-        |> do_build_dataset(labels, [])
-        |> Enum.reverse()
-        |> Enum.map(fn tickets_count ->
-          if with_subscriber? == false || with_subscriber? == "false" do
-            max(tickets_count - subscribers_quantity, 0)
-          else
-            tickets_count
+        |> Enum.sort_by(&(&1.record_date), {:asc, DateTime})
+        |> add_up_ticket_counts([])
+        |> Enum.map( fn %TicketsCount{tickets_count: count} = tickets_count ->
+          count = cond do
+            with_subscriber? == false || with_subscriber? == "false" ->
+              max(count - subscribers_quantity, 0)
+            true -> count
           end
+
+          count = cond do
+            use_percent? == "true" || use_percent? == true -> count / capacity * 100
+            true -> count
+          end
+
+          %TicketsCount{tickets_count | tickets_count: count}
         end)
+        |> Enum.reverse()
 
-      dataset = if use_percent == "true" || use_percent == true do
-        dataset
-        |> Enum.map(fn tickets_count -> (tickets_count / capacity * 100) end)
-      else
-        dataset
-      end
-
-      %{label: label, data: dataset}
+      %Dataset{label: label, ticket_counts: ticket_counts}
     end)
   end
 
-  defp do_build_dataset(_, [], tickets_count), do: tickets_count
+  defp add_up_ticket_counts([], ticket_counts), do: ticket_counts
 
-  defp do_build_dataset([], [_ | next_dates], [latest_tickets_count | _] = tickets_count) do
-    do_build_dataset([], next_dates, [latest_tickets_count | tickets_count])
-  end
-
-  defp do_build_dataset(sales_figures, [current_date | next_dates], []) do
-    {total_tickets_count, sales_figures} = sum_tickets_count(0, current_date, sales_figures)
-
-    do_build_dataset(sales_figures, next_dates, [total_tickets_count])
-  end
-
-  defp do_build_dataset(sales_figures, [current_date | next_dates], [latest_tickets_count | _] = tickets_count) do
-    {total_tickets_count, sales_figures} = sum_tickets_count(latest_tickets_count, current_date, sales_figures)
-
-    do_build_dataset(sales_figures, next_dates, [total_tickets_count | tickets_count])
-  end
-
-  defp sum_tickets_count(total_tickets_count, _, []), do: {total_tickets_count, []}
-
-  defp sum_tickets_count(
-    total_tickets_count,
-    current_date,
-    [
-      %SalesFigures{record_date: record_date, tickets_count: tickets_count}
-      | next_sales_figures
-    ] = sales_figures
+  defp add_up_ticket_counts(
+    [%SalesFigures{record_date: record_date, tickets_count: tickets_count} | next_sales_figures],
+    []
   ) do
-    case Date.compare(current_date, DateTime.to_date(record_date)) do
-      :eq -> sum_tickets_count(tickets_count + total_tickets_count, current_date, next_sales_figures)
-      _ -> {total_tickets_count, sales_figures}
+    add_up_ticket_counts(next_sales_figures, [%TicketsCount{date: DateTime.to_date(record_date), tickets_count: tickets_count}])
+  end
+
+  defp add_up_ticket_counts(
+    [%SalesFigures{record_date: record_date, tickets_count: tickets_count} | next_sales_figures],
+    [%TicketsCount{date: current_date, tickets_count: current_tickets_count} | prev_ticket_counts] = ticket_counts
+  ) do
+    record_date = DateTime.to_date(record_date)
+
+    case Date.compare(record_date, current_date) do
+      :eq -> add_up_ticket_counts(next_sales_figures, [%TicketsCount{date: current_date, tickets_count: current_tickets_count + tickets_count} | prev_ticket_counts])
+      _ -> add_up_ticket_counts(next_sales_figures, [%TicketsCount{date: record_date, tickets_count: current_tickets_count + tickets_count} | ticket_counts])
     end
   end
 
@@ -150,17 +125,9 @@ defmodule Bezirke.Statistics do
     end
   end
 
-  def set_event_times_boundaries(events, []), do: events
+  def set_event_times_boundaries(events, nil, nil), do: events
 
-  def set_event_times_boundaries(events, dates) do
-    start_date =
-      dates
-      |> List.first()
-
-    end_date =
-      dates
-      |> List.last()
-
+  def set_event_times_boundaries(events, start_date, end_date) do
     events
     |> Enum.map(fn event ->
       event
